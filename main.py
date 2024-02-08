@@ -1,13 +1,20 @@
+# Importation de la classe Game depuis le module game dans le package modules
 from modules.game import Game
 
-# Définition des constantes
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
-FPS = 60
-TITLE = "TANKETTE"
-BACKGROUND_PATH = "assets/background.png"
+# Importation du module ctypes pour interagir avec les bibliothèques C
+import ctypes
 
-# Intialisation du jeu
+# Création d'un objet pour interagir avec la bibliothèque user32.dll de Windows
+usr32 = ctypes.windll.user32
+
+# Définition des constantes pour le jeu
+SCREEN_WIDTH = usr32.GetSystemMetrics(0)  # Obtention de la largeur de l'écran en pixels
+SCREEN_HEIGHT = usr32.GetSystemMetrics(1)  # Obtention de la hauteur de l'écran en pixels
+FPS = 60  # Nombre de frames par seconde
+TITLE = "TANKETTE"  # Titre de la fenêtre du jeu
+BACKGROUND_PATH = "assets/background.png"  # Chemin vers l'image de fond du jeu
+
+# Initialisation du jeu avec les constantes définies précédemment
 game = Game(TITLE, SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BACKGROUND_PATH)
 
 # Lancement du jeu
