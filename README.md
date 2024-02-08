@@ -1,5 +1,5 @@
 <br/>
-<p align="center" style="color: #BA6505; font-weight: bold; font-size: 3rem">Tankette</p>
+<h1 align="center">Tankette</h1>
 <br/>
 <p align="center"> 
     <img src="https://img.shields.io/badge/Python-DC382D?style=for-the-badge&logo=python&logoColor=white"/>
