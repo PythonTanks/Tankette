@@ -15,7 +15,7 @@ TITLE = "TANKETTE"  # Titre de la fenêtre du jeu
 BACKGROUND_PATH = "assets/background.png"  # Chemin vers l'image de fond du jeu
 
 # Initialisation du jeu avec les constantes définies précédemment
-game = Game(TITLE, SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BACKGROUND_PATH)
+game = Game(TITLE, SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BACKGROUND_PATH, '--debug')
 
 # Lancement du jeu
 game.start()

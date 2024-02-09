@@ -1,10 +1,11 @@
 import pygame
 import math
 import time
+#import debug
 
 class Game:
     # Le constructeur de la classe Game
-    def __init__(self, title="My Game", width=1920, height=1080, fps=60, background_path=None, icon_path=None):
+    def __init__(self, title="My Game", width=1920, height=1080, fps=60, background_path=None, icon_path=None, debug=False):
         # Initialisation des attributs de la classe
         self.title = title  # Titre de la fenêtre du jeu
         self.width = width  # Largeur de la fenêtre du jeu
@@ -19,6 +20,8 @@ class Game:
         # Création des objets Tank et TopTank
         self.tank = Tank(self, initial_position=(100, 100))
         self.toptank = TopTank(self.tank)
+        
+        self.debug = debug  # Mode de débogage
 
     # Méthode pour démarrer le jeu
     def start(self):        
@@ -47,6 +50,10 @@ class Game:
             self.tank.handle_input()
             self.toptank.rotate()
             pygame.display.flip()  # Mise à jour de l'affichage
+            
+            if self.debug:
+                #debug.debug(pygame.mouse.get_pos())
+                print(pygame.mouse.get_pos())
 
             # Gestion des événements
             for event in pygame.event.get():
@@ -69,6 +76,10 @@ class GameObject(pygame.sprite.Sprite):
         self.image_up = pygame.transform.rotate(self.image, 0)
         self.image_down = pygame.transform.rotate(self.image, 180)
         self.image_custom = pygame.transform.rotate(self.image, custom_rotate)
+        self.image_up_left = pygame.transform.rotate(self.image, 45)
+        self.image_up_right = pygame.transform.rotate(self.image, -45)
+        self.image_down_left = pygame.transform.rotate(self.image, 135)
+        self.image_down_right = pygame.transform.rotate(self.image, -135)
         self.rect = self.image.get_rect()  # Obtention du rectangle englobant l'image (utilisé pour le positionnement et la détection des collisions)
         self.rect.topleft = initial_position  # Positionnement du rectangle à la position initiale spécifiée
 
@@ -114,6 +125,8 @@ class Tank(Movable):
         self.all_projectiles = pygame.sprite.Group()
         # Temps du dernier tir
         self.last_shot = 0
+        
+        self.rotation = "haut"
 
     def launch_projectile(self, angle, start):
         # Vérifie si le temps écoulé depuis le dernier tir est supérieur à 0.5 seconde
@@ -131,25 +144,50 @@ class Tank(Movable):
         dx, dy = 0, 0
 
         # Si la touche 'd' est pressée, le tank se déplace vers la droite
-        if keys[pygame.K_d]:
+        if keys[pygame.K_d] and keys[pygame.K_z]:
+            self.image = pygame.transform.rotate(self.image, -45)
+            dx += self.velocity
+            dy -= self.velocity
+            self.move(dx, dy, self.image_up_right)
+            self.rotation = "haut droit"
+        elif keys[pygame.K_d] and keys[pygame.K_s]:
+            self.image = pygame.transform.rotate(self.image, -135)
+            dx += self.velocity
+            dy += self.velocity
+            self.move(dx, dy, self.image_down_right)
+            self.rotation = "bas droit"
+        elif keys[pygame.K_q] and keys[pygame.K_z]:
+            self.image = pygame.transform.rotate(self.image, 45)
+            dx -= self.velocity
+            dy -= self.velocity
+            self.move(dx, dy, self.image_up_left)
+            self.rotation = "haut gauche"
+        elif keys[pygame.K_q] and keys[pygame.K_s]:
+            self.image = pygame.transform.rotate(self.image, 135)
+            dx -= self.velocity
+            dy += self.velocity
+            self.move(dx, dy, self.image_down_left)
+            self.rotation = "bas gauche"
+        elif keys[pygame.K_d]:
             self.image = pygame.transform.rotate(self.image, -90)
             dx += self.velocity
             self.move(dx, dy, self.image_right)
-        # Si la touche 'q' est pressée, le tank se déplace vers la gauche
+            self.rotation = "droite"
         elif keys[pygame.K_q]:
             self.image = pygame.transform.rotate(self.image, 90)
             dx -= self.velocity
             self.move(dx, dy, self.image_left)
-        # Si la touche 'z' est pressée, le tank se déplace vers le haut
+            self.rotation = "gauche"
         elif keys[pygame.K_z]:
             self.image = pygame.transform.rotate(self.image, 0)
             dy -= self.velocity
             self.move(dx, dy, self.image_up)
-        # Si la touche 's' est pressée, le tank se déplace vers le bas
+            self.rotation = "haut"
         elif keys[pygame.K_s]:
             self.image = pygame.transform.rotate(self.image, 180)
             dy += self.velocity
             self.move(dx, dy, self.image_down)
+            self.rotation = "bas"
 
         # Si la touche 'espace' est pressée, le tank tire un projectile
         if keys[pygame.K_SPACE]:
@@ -174,12 +212,17 @@ class TopTank(pygame.sprite.Sprite):
         # Calcul de l'angle entre la position de la souris et la position du tank
         mouse_position = pygame.mouse.get_pos()
         player_position = self.tank.rect.center
+        tank_center = (self.tank.rect.x + self.tank.rect.width / 2, self.tank.rect.y + self.tank.rect.height / 2)
         self.angle = math.atan2(mouse_position[1] - player_position[1], mouse_position[0] - player_position[0])
         self.angle = math.degrees(self.angle)
         # Rotation de l'image du tank en fonction de l'angle calculé
         self.image = pygame.transform.rotate(self.image_original, -self.angle)
         # Mise à jour du rectangle englobant pour correspondre à la nouvelle image
-        self.rect = self.image.get_rect(center=self.tank.rect.center)
+        self.direction = self.tank.rotation
+        if self.direction == "haut" or self.direction == "bas" or self.direction == "droite" or self.direction == "gauche":
+            self.rect = self.image.get_rect(center=self.tank.rect.center)
+        else:
+            self.rect = self.image.get_rect(center=(tank_center[0] + 30, tank_center[1] + 30))
 
     def update_position(self):
         # Mise à jour de la position du tank pour correspondre à celle du tank associé
@@ -223,3 +266,23 @@ class Bullet(Movable):
         # Si la balle sort de l'écran, elle est supprimée
         if self.rect.x < 0 or self.rect.x > self.game.width or self.rect.y < 0 or self.rect.y > self.game.height:
             self.kill()
+
+if __name__ == "__main__":
+    # Importation du module ctypes pour interagir avec les bibliothèques C
+    import ctypes
+
+    # Création d'un objet pour interagir avec la bibliothèque user32.dll de Windows
+    usr32 = ctypes.windll.user32
+
+    # Définition des constantes pour le jeu
+    SCREEN_WIDTH = usr32.GetSystemMetrics(0)  # Obtention de la largeur de l'écran en pixels
+    SCREEN_HEIGHT = usr32.GetSystemMetrics(1)  # Obtention de la hauteur de l'écran en pixels
+    FPS = 60  # Nombre de frames par seconde
+    TITLE = "TANKETTE"  # Titre de la fenêtre du jeu
+    BACKGROUND_PATH = "assets/background.png"  # Chemin vers l'image de fond du jeu
+
+    # Initialisation du jeu avec les constantes définies précédemment
+    game = Game(TITLE, SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BACKGROUND_PATH, '--debug')
+
+    # Lancement du jeu
+    game.start()
