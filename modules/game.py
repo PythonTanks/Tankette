@@ -67,9 +67,10 @@ class Game:
                 elif event.type == pygame.KEYUP:  # Si une touche est relâchée
                     self.pressed[event.key] = False  # On enregistre que la touche n'est plus pressée
     
+    # Méthode pour afficher des informations de débogage à l'écran
     def debugScreen(self, info, x = 10, y = 10):
-        display_surface = pygame.display.get_surface()
-        font = pygame.font.Font(None, 30)
-        debug_surface = font.render(str(info), True, (255, 255, 255))
-        debug_rect = debug_surface.get_rect(topleft=(x, y))
-        display_surface.blit(debug_surface, debug_rect)
+        display_surface = pygame.display.get_surface()   # Récupération de la surface d'affichage
+        font = pygame.font.Font(None, 30)   # Création d'une police de caractères 
+        debug_surface = font.render(str(info), True, (255, 255, 255))   # Création d'une surface de texte
+        debug_rect = debug_surface.get_rect(topleft=(x, y))   # Création d'un rectangle pour la surface de texte
+        display_surface.blit(debug_surface, debug_rect)   # Affichage de la surface de texte

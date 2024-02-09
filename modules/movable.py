@@ -8,7 +8,9 @@ class Movable(GameObject):
         # Initialisation de la vitesse de l'objet
         self.velocity = velocity
     
+    # Méthode pour faire tourner l'image de l'objet
     def spriteRotate(self, rotate):
+        # Rotation de l'image de l'objet en fonction de la direction spécifiée
         self.image = rotate
 
     # Méthode pour déplacer l'objet

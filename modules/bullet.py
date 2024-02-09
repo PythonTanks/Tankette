@@ -22,9 +22,11 @@ class Bullet(Movable):
         self.dx = math.cos(math.radians(self.angle)) * self.velocity
         self.dy = math.sin(math.radians(self.angle)) * self.velocity
         
+        # Rotation de l'image de la balle en fonction de l'angle de déplacement
         self.spriteRotate(self.image_custom)
 
     def update(self):
+        # Si le jeu n'est pas en pause
         if not self.game.freeze:
             # Déplacement de la balle
             self.move(self.dx, self.dy, self.image_custom)
