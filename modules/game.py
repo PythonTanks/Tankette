@@ -25,6 +25,9 @@ class Game:
         # Création des objets Tank et TopTank
         self.tank = Tank(self, initial_position=(100, 100))
         self.toptank = TopTank(self, self.tank)
+        
+        self.tankEnemy = Tank(self, initial_position=(self.width - 100, self.height - 100))
+        self.toptankEnemy = TopTank(self, self.tankEnemy)
 
     # Méthode pour démarrer le jeu
     def start(self):        
@@ -43,6 +46,9 @@ class Game:
             # Dessin des objets Tank et TopTank
             self.screen.blit(self.tank.image, self.tank.rect)
             self.screen.blit(self.toptank.image, self.toptank.rect)
+            
+            self.screen.blit(self.tankEnemy.image, self.tankEnemy.rect)
+            self.screen.blit(self.toptankEnemy.image, self.toptankEnemy.rect)
 
             # Mise à jour et dessin des projectiles
             for bullet in self.tank.all_projectiles:
@@ -52,6 +58,9 @@ class Game:
             # Gestion des entrées utilisateur
             self.tank.handle_input()
             self.toptank.rotate()
+            
+            self.tankEnemy.handle_input()
+            self.toptankEnemy.rotate()
             
             if self.debug:
                 self.debugScreen(pygame.mouse.get_pos())
