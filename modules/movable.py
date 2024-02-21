@@ -19,3 +19,23 @@ class Movable(GameObject):
         self.rect.x += dx
         self.rect.y += dy
         self.spriteRotate(rotate)
+        
+    def spriteRotateDirection(self, direction):
+        if direction == "haut":
+            self.spriteRotate(self.image_up)
+        elif direction == "bas":
+            self.spriteRotate(self.image_down)
+        elif direction == "droite":
+            self.spriteRotate(self.image_right)
+        elif direction == "gauche":
+            self.spriteRotate(self.image_left)
+        elif direction == "haut_droit":
+            self.spriteRotate(self.image_up_right)
+        elif direction == "haut_gauche":
+            self.spriteRotate(self.image_up_left)
+        elif direction == "bas_droit":
+            self.spriteRotate(self.image_down_right)
+        elif direction == "bas_gauche":
+            self.spriteRotate(self.image_down_left)
+        else:
+            self.spriteRotate(self.image_custom)

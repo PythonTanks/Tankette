@@ -1,6 +1,7 @@
 import pygame
 from modules.tank import Tank
 from modules.topTank import TopTank
+from modules.network import connect_to_server, send_message, get_last_message, close_connection
 
 class Game:
     # Le constructeur de la classe Game
@@ -23,11 +24,14 @@ class Game:
         self.freeze = False  # Mode de pause du jeu
 
         # Création des objets Tank et TopTank
-        self.tank = Tank(self, initial_position=(100, 100))
+        self.tank = Tank(self)
         self.toptank = TopTank(self, self.tank)
         
-        self.tankEnemy = Tank(self, initial_position=(self.width - 100, self.height - 100))
+        self.tankEnemy = Tank(self)
         self.toptankEnemy = TopTank(self, self.tankEnemy)
+
+        # Connexion au serveur
+        connect_to_server()
 
     # Méthode pour démarrer le jeu
     def start(self):        
@@ -37,8 +41,33 @@ class Game:
         
         self.is_running = True  # Le jeu est en cours d'exécution
         
+        self.screen.blit(self.background, (0,0))
+        
+        self.screen.blit(self.tank.image, self.tank.rect)
+        self.screen.blit(self.toptank.image, self.toptank.rect)
+        
+        self.screen.blit(self.tankEnemy.image, self.tankEnemy.rect)
+        self.screen.blit(self.toptankEnemy.image, self.toptankEnemy.rect)
+        
+        self.tank.set_position((100, 100))
+        self.tank.spriteRotateDirection("droite")
+        self.tank.rotation = "droite"
+        self.toptank.rotate_with_angle(45.)
+        
+        self.tankEnemy.set_position((self.width - 200, self.height - 200))
+        self.tankEnemy.spriteRotateDirection("gauche")
+        self.tankEnemy.rotation = "gauche"
+        self.toptankEnemy.rotate_with_angle(135.)
+        
+        
+        
         # Boucle principale du jeu
         while self.is_running:
+            
+            # On vérifie que le jeu n'est pas fermé par un alt+f4
+            if not pygame.display.get_init():
+                close_connection()
+                break
 
             # Dessin du fond
             self.screen.blit(self.background, (0,0))
@@ -59,17 +88,34 @@ class Game:
             self.tank.handle_input()
             self.toptank.rotate()
             
-            self.tankEnemy.handle_input()
-            self.toptankEnemy.rotate()
-            
             if self.debug:
                 self.debugScreen(pygame.mouse.get_pos())
                 
+            # Envoi des données au serveur
+            send_message([self.tank.get_position(), self.tank.rotation, self.toptank.get_angle()])
+            
+            # On prend le dernier message reçu
+            message = get_last_message()
+            #exemple de message = "[[600, 370], 'haut', -6.188615963241602]" qui est un string et [600, 370] est une liste qui contient la position du tank
+            if message:
+                message = message.split(",")
+                position = [int(message[0][2:]), int(message[1][1:-1])]
+                rotation = message[2][2:-1]
+                angle = float(message[3][1:-2])
+                self.tankEnemy.set_position(position)
+                self.tankEnemy.spriteRotateDirection(rotation)
+                self.tankEnemy.rotation = rotation
+                self.toptankEnemy.rotate_with_angle(angle)                
+                
+                if self.debug:
+                    print(f"[CLIENT] Message reçu: {message}")
+                    
             pygame.display.update()  # Mise à jour de l'affichage
 
             # Gestion des événements
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
+                    close_connection()
                     pygame.quit()  # Arrêt de Pygame
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # On enregistre que la touche est pressée
