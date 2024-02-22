@@ -67,6 +67,6 @@ class TopTank(pygame.sprite.Sprite):
     def get_position_bout_canon(self):
         # Calcule et retourne la position du bout du canon du tank
         center = self.rect.center
-        distance = 70
+        distance = 75
         angle = math.radians(self.angle)
         return (center[0] + distance * math.cos(angle), center[1] + distance * math.sin(angle))
