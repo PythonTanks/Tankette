@@ -34,11 +34,24 @@ class Game:
         pygame.init()  # Initialisation de Pygame
         pygame.display.set_caption(self.title)  # Définition du titre de la fenêtre
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)  # Création de la fenêtre du jeu
+
+        self.smallfont = pygame.font.Font(None, 35) # Création d'une police de caractères
+        self.largefont = pygame.font.Font(None, 75) # Création d'une police de caractères
+        self.main_title = self.largefont.render('Tanks !' , True , (150,150,150)) # Création d'une surface de texte
+        self.main_play = self.smallfont.render('Jouer' , True , (255,255,255)) # Création d'une surface de texte
+        self.main_options = self.smallfont.render('Options' , True , (255,255,255)) # Création d'une surface de texte
+        self.main_quit = self.smallfont.render('Quitter' , True , (255,255,255)) # Création d'une surface de texte
+        self.main_back = self.smallfont.render('Retour' , True , (255,255,255)) # Création d'une surface de texte
         
         self.is_running = True  # Le jeu est en cours d'exécution
+        self.in_main_menu = True  # Le jeu est dans le menu principal
         
         # Boucle principale du jeu
         while self.is_running:
+
+            if self.in_main_menu:
+                self.mainmenuScreen()
+                self.in_main_menu = False
 
             # Dessin du fond
             self.screen.blit(self.background, (0,0))
@@ -75,6 +88,10 @@ class Game:
                     self.pressed[event.key] = True  # On enregistre que la touche est pressée
                 elif event.type == pygame.KEYUP:  # Si une touche est relâchée
                     self.pressed[event.key] = False  # On enregistre que la touche n'est plus pressée
+
+            if(self.pressed.get(pygame.K_ESCAPE)):
+                self.in_main_menu = True
+
     
     # Méthode pour afficher des informations de débogage à l'écran
     def debugScreen(self, info, x = 10, y = 10):
@@ -83,3 +100,65 @@ class Game:
         debug_surface = font.render(str(info), True, (255, 255, 255))   # Création d'une surface de texte
         debug_rect = debug_surface.get_rect(topleft=(x, y))   # Création d'un rectangle pour la surface de texte
         display_surface.blit(debug_surface, debug_rect)   # Affichage de la surface de texte
+
+    def mainmenuScreen(self):
+        is_open = True
+        while is_open:
+            self.screen.fill((0, 0, 0))
+
+            self.screen.blit(self.main_title, (self.width/2 - self.main_title.get_width()/2, 50)) # Dessine le titre
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,290,150,40]) 
+            self.screen.blit(self.main_play, (self.width/2 - self.main_play.get_width()/2, 300)) # Dessine le bouton "Jouer"
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,340,150,40])
+            self.screen.blit(self.main_options, (self.width/2 - self.main_options.get_width()/2, 350)) # Dessine le bouton "Options"
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,390,150,40])
+            self.screen.blit(self.main_quit, (self.width/2 - self.main_quit.get_width()/2, 400)) # Dessine le bouton "Quitter"
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
+                    pygame.quit()  # Arrêt de Pygame
+                elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
+                    self.pressed[event.key] = True  # On enregistre que la touche est pressée
+                elif event.type == pygame.KEYUP:  # Si une touche est relâchée
+                    self.pressed[event.key] = False  # On enregistre que la touche n'est plus pressée
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 290 <= event.pos[1] <= 330:
+                            is_open = False
+                            self.is_running = True
+                        elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 390 <= event.pos[1] <= 430:
+                            self.is_running = False
+                            is_open = False
+                        elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 340 <= event.pos[1] <= 380:
+                            self.is_running = True
+                            self.optionsScreen()
+
+    def optionsScreen(self):
+        is_open = True
+        while is_open:
+            self.screen.fill((0, 0, 0))
+
+            self.screen.blit(self.main_title, (self.width/2 - self.main_title.get_width()/2, 50))
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,490,150,40])
+            self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 500))
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
+                    pygame.quit()  # Arrêt de Pygame
+                elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
+                    self.pressed[event.key] = True  # On enregistre que la touche est pressée
+                elif event.type == pygame.KEYUP:  # Si une touche est relâchée
+                    self.pressed[event.key] = False  # On enregistre que la touche n'est plus pressée
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 490 <= event.pos[1] <= 530:
+                            self.is_running = True
+                            is_open = False
+
+                if(self.pressed.get(pygame.K_ESCAPE)):
+                    self.in_main_menu = True
+                    is_open = False
