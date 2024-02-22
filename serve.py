@@ -12,8 +12,11 @@ server_socket.bind((SERVER_HOST, SERVER_PORT))
 server_socket.listen(2)
 print("[SERVEUR] Attente de connexions clients...")
 
+run = True
+
 # Fonction pour gérer chaque client
 def handle_client(client_socket, client_address):
+    global run
     print(f"[SERVEUR] Nouvelle connexion de {client_address}")
     # On lui envoie son numéro de connexion, tel que si c'est le premier client, il aura le numéro 1
     client_socket.send(pickle.dumps(len(clients)))
