@@ -1,8 +1,9 @@
 import socket
 import threading
+import pickle
 
 # Adresse IP et port du serveur
-SERVER_HOST = 'localhost'
+SERVER_HOST = '192.168.1.36'
 SERVER_PORT = 5555
 
 client_socket = None
@@ -22,7 +23,7 @@ def receive_messages():
     while True:
         try:
             # Réception des données du serveur
-            data = client_socket.recv(1024).decode('utf-8')
+            data = pickle.loads(client_socket.recv(1024))
             last_message = data
             #print("[CLIENT] Reçu du serveur:", data)
         except Exception as e:
@@ -30,7 +31,7 @@ def receive_messages():
             break
 
 def send_message(data):
-    client_socket.send(str(data).encode('utf-8'))
+    client_socket.send(pickle.dumps(data))
     
 def get_last_message():
     global last_message
