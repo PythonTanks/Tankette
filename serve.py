@@ -3,7 +3,7 @@ import threading
 import pickle
 
 # Adresse IP et port du serveur
-SERVER_HOST = '192.168.1.36'
+SERVER_HOST = '192.168.1.29'
 SERVER_PORT = 5555
 
 # Création d'un socket serveur

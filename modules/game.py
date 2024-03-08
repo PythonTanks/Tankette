@@ -32,15 +32,7 @@ class Game:
         self.tankEnemy = Tank(self, image_path="assets/tank2.png")
         self.toptankEnemy = TopTank(self, self.tankEnemy, image_path="assets/toptank2.png")
 
-        # Connexion au serveur
-        connect_to_server()
-        
-        message = get_last_message()
-        while not message:
-            message = get_last_message()
-        print(f"[CLIENT] Message reçu: {message}")
-        self.first = get_last_message()
-        self.num = int(self.first)
+        self.start()  # Démarrage du jeu
 
         self.status = "menu" # menu,play,options,ingame
 
@@ -69,30 +61,6 @@ class Game:
         self.screen.blit(self.tankEnemy.image, self.tankEnemy.rect)
         self.screen.blit(self.toptankEnemy.image, self.toptankEnemy.rect)
         
-        if self.num == 1:
-        
-            self.tank.set_position((100, 100))
-            self.tank.spriteRotateDirection("droite")
-            self.tank.rotation = "droite"
-            self.toptank.rotate_with_angle(45.)
-            
-            self.tankEnemy.set_position((self.width - 200, self.height - 200))
-            self.tankEnemy.spriteRotateDirection("gauche")
-            self.tankEnemy.rotation = "gauche"
-            self.toptankEnemy.rotate_with_angle(135.)
-            
-        else:
-            
-            self.tank.set_position((self.width - 200, self.height - 200))
-            self.tank.spriteRotateDirection("gauche")
-            self.tank.rotation = "gauche"
-            self.toptank.rotate_with_angle(135.)
-            
-            self.tankEnemy.set_position((100, 100))
-            self.tankEnemy.spriteRotateDirection("droite")
-            self.tankEnemy.rotation = "droite"
-            self.toptankEnemy.rotate_with_angle(45.)
-        
         
         
         # Boucle principale du jeu
@@ -106,6 +74,40 @@ class Game:
             if self.in_main_menu:
                 self.mainmenuScreen()
                 self.in_main_menu = False
+
+                # Connexion au serveur
+                connect_to_server()
+                
+                message = get_last_message()
+                while not message:
+                    message = get_last_message()
+                print(f"[CLIENT] Message reçu: {message}")
+                self.first = get_last_message()
+                self.num = int(self.first)
+
+                if self.num == 1:
+                
+                    self.tank.set_position((100, 100))
+                    self.tank.spriteRotateDirection("droite")
+                    self.tank.rotation = "droite"
+                    self.toptank.rotate_with_angle(45.)
+                    
+                    self.tankEnemy.set_position((self.width - 200, self.height - 200))
+                    self.tankEnemy.spriteRotateDirection("gauche")
+                    self.tankEnemy.rotation = "gauche"
+                    self.toptankEnemy.rotate_with_angle(135.)
+                    
+                else:
+                    
+                    self.tank.set_position((self.width - 200, self.height - 200))
+                    self.tank.spriteRotateDirection("gauche")
+                    self.tank.rotation = "gauche"
+                    self.toptank.rotate_with_angle(135.)
+                    
+                    self.tankEnemy.set_position((100, 100))
+                    self.tankEnemy.spriteRotateDirection("droite")
+                    self.tankEnemy.rotation = "droite"
+                    self.toptankEnemy.rotate_with_angle(45.)
 
             # Dessin du fond
             self.screen.blit(self.background, (0,0))
