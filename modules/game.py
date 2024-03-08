@@ -13,6 +13,7 @@ class Game:
         self.background_path = pygame.image.load(background_path)  # Chemin vers l'image de fond
         self.background = pygame.transform.scale(self.background_path, (self.width, self.height))  # Image de fond redimensionnée
         self.icon_path = icon_path  # Chemin vers l'icône du jeu
+        self.ip = "" # Adresse IP du serveur
         
         self.pressed = {}  # Dictionnaire pour gérer les touches pressées
         
@@ -28,6 +29,8 @@ class Game:
         
         self.tankEnemy = Tank(self, initial_position=(self.width - 100, self.height - 100))
         self.toptankEnemy = TopTank(self, self.tankEnemy)
+
+        self.status = "menu" # menu,play,options,ingame
 
     # Méthode pour démarrer le jeu
     def start(self):        
@@ -126,12 +129,15 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 290 <= event.pos[1] <= 330:
-                            is_open = False
-                            self.is_running = True
+                            self.status = "play"
+                            self.playScreen()
+                            if(self.status == "ingame"):
+                                is_open = False
                         elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 390 <= event.pos[1] <= 430:
                             self.is_running = False
                             is_open = False
                         elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 340 <= event.pos[1] <= 380:
+                            self.status = "options"
                             self.is_running = True
                             self.optionsScreen()
 
@@ -158,6 +164,74 @@ class Game:
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 490 <= event.pos[1] <= 530:
                             self.is_running = True
                             is_open = False
+                            self.status = "menu"
+
+                if(self.pressed.get(pygame.K_ESCAPE)):
+                    self.in_main_menu = True
+                    is_open = False
+
+    def playScreen(self):
+        is_open = True
+        write_mode = False
+
+        while is_open:
+
+            self.screen.fill((0, 0, 0))
+
+            self.screen.blit(self.main_title, (self.width/2 - self.main_title.get_width()/2, 50))
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,540,150,40])
+            self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 550))
+
+            ip_text = self.smallfont.render('IP du serveur' , True , (255,255,255)) # Création d'une surface de texte
+            self.screen.blit(ip_text, (self.width/2 - ip_text.get_width()/2, 340)) # Dessine le texte ip
+
+            play_text = self.smallfont.render('Rejoindre' , True , (255,255,255)) # Création d'une surface de texte
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,440,150,40])
+            self.screen.blit(play_text, (self.width/2 - play_text.get_width()/2, 450)) # Dessine le texte rejoindre
+
+            create_text = self.smallfont.render('Créer' , True , (255,255,255)) # Création d'une surface de texte
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,490,150,40])
+            self.screen.blit(create_text, (self.width/2 - create_text.get_width()/2, 500)) # Dessine le texte rejoindre
+
+            if write_mode:
+                pygame.draw.rect(self.screen,(75,75,75),[self.width/2 - 300/2,370,300,40])
+            else:
+                pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 300/2,370,300,40])
+
+            ip_surface = self.smallfont.render(self.ip , True , (255,255,255)) # Création d'une surface de texte
+            self.screen.blit(ip_surface, (self.width/2 - ip_surface.get_width()/2, 380)) # Dessine le texte ip
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
+                    pygame.quit()  # Arrêt de Pygame
+                elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
+                    self.pressed[event.key] = True  # On enregistre que la touche est pressée
+                    if(write_mode):
+                        if event.key == pygame.K_BACKSPACE:
+                            self.ip = self.ip[:-1]
+                        else:
+                            self.ip += event.unicode
+                elif event.type == pygame.KEYUP:  # Si une touche est relâchée
+                    self.pressed[event.key] = False  # On enregistre que la touche n'est plus pressée
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 540 <= event.pos[1] <= 580:
+                            self.is_running = True
+                            is_open = False
+                            self.status = "menu"
+                        if self.width/2 - 300/2 <= event.pos[0] <= self.width/2 - 300/2 + 300 and 370 <= event.pos[1] <= 410:
+                            write_mode = True
+                        else:
+                            write_mode = False
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 - 150/2 + 300 and 440 <= event.pos[1] <= 480:
+                            print("connect to server", self.ip)
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 - 150/2 + 300 and 490 <= event.pos[1] <= 530:
+                            print("create server")
+                            is_open = False
+                            self.is_running = True
+                            self.status = "ingame"
 
                 if(self.pressed.get(pygame.K_ESCAPE)):
                     self.in_main_menu = True
