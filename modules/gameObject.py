@@ -31,11 +31,12 @@ class GameObject(pygame.sprite.Sprite):
 
     # Méthode pour obtenir la position actuelle de l'objet
     def get_position(self):
-        return self.rect.topleft
+        return [self.rect.x, self.rect.y]
 
     # Méthode pour définir la position de l'objet
     def set_position(self, position):
-        self.rect.topleft = position
+        self.rect.x = position[0]
+        self.rect.y = position[1]
 
     # Méthode pour obtenir la hitbox (rectangle englobant) de l'objet
     def get_hitbox(self):

@@ -41,6 +41,20 @@ class TopTank(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(center=(tank_center[0] + 10, tank_center[1] - 10))
         else:
             self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
+            
+    def rotate_with_angle(self, angle):
+        self.direction = self.tank.rotation
+        tank_center = (self.tank.rect.x + self.tank.rect.width / 2, self.tank.rect.y + self.tank.rect.height / 2)
+        # Rotation de l'image du tank en fonction de l'angle spécifié
+        self.image = pygame.transform.rotate(self.image_original, -angle)
+        # Mise à jour du rectangle englobant pour correspondre à la nouvelle image
+        if self.direction == "haut" or self.direction == "bas":
+            self.rect = self.image.get_rect(center=self.tank.rect.center)
+        elif self.direction == "droite" or self.direction == "gauche":
+            self.rect = self.image.get_rect(center=(tank_center[0] + 10, tank_center[1] - 10))
+        else:
+            self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
+        self.angle = angle
 
     def update_position(self):
         # Mise à jour de la position du tank pour correspondre à celle du tank associé
@@ -53,6 +67,6 @@ class TopTank(pygame.sprite.Sprite):
     def get_position_bout_canon(self):
         # Calcule et retourne la position du bout du canon du tank
         center = self.rect.center
-        distance = 70
+        distance = 75
         angle = math.radians(self.angle)
         return (center[0] + distance * math.cos(angle), center[1] + distance * math.sin(angle))

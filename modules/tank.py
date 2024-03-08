@@ -42,7 +42,7 @@ class Tank(Movable):
                 dx += self.velocity
                 dy -= self.velocity
                 self.move(dx, dy, self.image_up_right)
-                self.rotation = "haut droit"
+                self.rotation = "haut_droit"
                 
             # Si les touches 'd' et 's' sont pressées simultanément
             elif keys[pygame.K_d] and keys[pygame.K_s]:
@@ -52,7 +52,7 @@ class Tank(Movable):
                 dx += self.velocity
                 dy += self.velocity
                 self.move(dx, dy, self.image_down_right)
-                self.rotation = "bas droit"
+                self.rotation = "bas_droit"
             
             # Si les touches 'q' et 'z' sont pressées simultanément
             elif keys[pygame.K_q] and keys[pygame.K_z]:
@@ -62,7 +62,7 @@ class Tank(Movable):
                 dx -= self.velocity
                 dy -= self.velocity
                 self.move(dx, dy, self.image_up_left)
-                self.rotation = "haut gauche"
+                self.rotation = "haut_gauche"
             
             # Si les touches 'q' et 's' sont pressées simultanément
             elif keys[pygame.K_q] and keys[pygame.K_s]:
@@ -72,7 +72,7 @@ class Tank(Movable):
                 dx -= self.velocity
                 dy += self.velocity
                 self.move(dx, dy, self.image_down_left)
-                self.rotation = "bas gauche"
+                self.rotation = "bas_gauche"
                 
             # Si la touche 'd' est pressée
             elif keys[pygame.K_d]:
