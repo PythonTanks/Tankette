@@ -8,6 +8,8 @@ from modules.topTank import TopTank
 from modules.network import connect_to_server, send_message, get_last_message, close_connection
 from modules.bullet import Bullet
 
+IP_SERVER = "192.168.1.36" # Mettre IPV4 de la machine qui héberge le serveur
+
 class Game:
     # Le constructeur de la classe Game
     def __init__(self, title="My Game", width=1920, height=1080, fps=60, background_path=None, icon_path=None, debug=False, diagonales=False):
@@ -285,8 +287,7 @@ class Game:
                                 try :
                                     self.ip = int(self.ip)
                                     if self.ip > 1000 and self.ip < 65535 and self.ip != 5555:
-                                        print("connect to server", self.ip)
-                                        response = connect_to_server(self.ip)
+                                        response = connect_to_server(self.ip, IP_SERVER)
                                         if response:
                                             self.connected = True
                                             self.num = 2
@@ -302,13 +303,11 @@ class Game:
                                 except:
                                     continue
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 - 150/2 + 300 and 490 <= event.pos[1] <= 530:
-                            print("create server")
                             self.ip = int(self.ip)
-                            response = requests.post(f"http://127.0.0.1:5555/server/{self.ip}")
+                            response = requests.post(f"http://{IP_SERVER}:5555/server/{self.ip}")
                             if response.status_code == 200:
-                                print("serveur créé sur le port : ", type(self.ip))
                                 time.sleep(0.25)
-                                connect_to_server(self.ip)
+                                connect_to_server(self.ip, IP_SERVER)
                                 self.connected = True
                                 self.num = 1
                                 is_open = False

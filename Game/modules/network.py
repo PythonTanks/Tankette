@@ -3,16 +3,12 @@ import threading
 import pickle
 import requests
 
-# Adresse IP et port du serveur
-SERVER_HOST = '192.168.1.36'
-# SERVER_PORT = 5555
-
 client_socket = None
 last_message = None
 
-def connect_to_server(SERVER_PORT = 5556):
+def connect_to_server(SERVER_PORT, SERVER_HOST):
     global client_socket
-    response = requests.get(f"http://127.0.0.1:5555/server/{SERVER_PORT}")
+    response = requests.get(f"http://{SERVER_HOST}:5555/server/{SERVER_PORT}")
     if response.status_code == 200:
         print("[CLIENT] Serveur démarré.")
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
