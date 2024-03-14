@@ -27,7 +27,7 @@ if not os.path.exists("Server/logs"):
         os.mkdir("Server/logs")
 
 if API_LOG_FILE:
-    fileAPI = open("Server/logs/api.log", "w")
+    fileAPI = open("Server/logs/api.log", "a")
 
 listPorts = []
 
@@ -46,14 +46,15 @@ def server(port):
         return "Serveur non démarré", 400
 
 def MyServer(SERVER_PORT=5556):
+    global fileAPI
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((SERVER_HOST, SERVER_PORT))
     server_socket.listen(2)
     print(f"# [SERVEUR | {SERVER_PORT}] Serveur prêt")
     if SERVER_LOG_FILE:
-        file = open(f"Server/logs/server_{SERVER_PORT}.log", "w")
+        file = open(f"Server/logs/server_{SERVER_PORT}.log", "a")
         file.write(f"# [SERVEUR | {SERVER_PORT}] Serveur pret [{datetime.datetime.now()}]\n")
-        fileAPI.write(f"    # [API] Serveur demarre sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
+        fileAPI.write(f"        # [API] Serveur demarre sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
 
     # Fonction pour gérer chaque client
     def handle_client(client_socket, client_address):
@@ -67,9 +68,9 @@ def MyServer(SERVER_PORT=5556):
                 if not data:
                     break
                 if SERVER_LOG:
-                    print(f"    # [SERVEUR | {SERVER_PORT}] Recu de {client_address}: {data}")
+                    print(f"        # [SERVEUR | {SERVER_PORT}] Recu de {client_address}: {data}")
                 if SERVER_LOG_FILE:
-                    file.write(f"    # [SERVEUR | {SERVER_PORT}] Recu de {client_address}: {data} [{datetime.datetime.now()}]\n")
+                    file.write(f"       # [SERVEUR | {SERVER_PORT}] Recu de {client_address}: {data} [{datetime.datetime.now()}]\n")
 
                 for c in clients:
                     if c != client_socket:
@@ -114,7 +115,8 @@ def MyServer(SERVER_PORT=5556):
             print(f"# [SERVEUR | {SERVER_PORT}] Arret du serveur")
             if SERVER_LOG_FILE:
                 file.write(f"# [SERVEUR | {SERVER_PORT}] Arret du serveur [{datetime.datetime.now()}]\n")
-                fileAPI.write(f"    # [API] Serveur arrete sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
+                file.close()
+                fileAPI.write(f"        # [API] Serveur arrete sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
             listPorts.remove(SERVER_PORT)
             if len(listPorts) == 0:
                 print("---------------------------------")
@@ -131,6 +133,8 @@ def MyServer(SERVER_PORT=5556):
             print("---------------------------------")
             if API_LOG_FILE:
                 fileAPI.write(f"# [API] Ports utilises: {resulting[0:-2]} [{datetime.datetime.now()}]\n")
+                fileAPI.close()
+                fileAPI = open("Server/logs/api.log", "a")
             break
 
 if __name__ == '__main__':
