@@ -1,4 +1,8 @@
 import pygame
+import socket
+import threading
+import time
+import requests
 from modules.tank import Tank
 from modules.topTank import TopTank
 from modules.network import connect_to_server, send_message, get_last_message, close_connection
@@ -32,17 +36,11 @@ class Game:
         self.tankEnemy = Tank(self, image_path="assets/tank2.png")
         self.toptankEnemy = TopTank(self, self.tankEnemy, image_path="assets/toptank2.png")
 
-        # Connexion au serveur
-        connect_to_server()
-        
-        message = get_last_message()
-        while not message:
-            message = get_last_message()
-        print(f"[CLIENT] Message reçu: {message}")
-        self.first = get_last_message()
-        self.num = int(self.first)
-
         self.status = "menu" # menu,play,options,ingame
+        
+        self.num = 1
+        
+        self.connected = False
 
     # Méthode pour démarrer le jeu
     def start(self):        
@@ -69,43 +67,20 @@ class Game:
         self.screen.blit(self.tankEnemy.image, self.tankEnemy.rect)
         self.screen.blit(self.toptankEnemy.image, self.toptankEnemy.rect)
         
-        if self.num == 1:
-        
-            self.tank.set_position((100, 100))
-            self.tank.spriteRotateDirection("droite")
-            self.tank.rotation = "droite"
-            self.toptank.rotate_with_angle(45.)
-            
-            self.tankEnemy.set_position((self.width - 200, self.height - 200))
-            self.tankEnemy.spriteRotateDirection("gauche")
-            self.tankEnemy.rotation = "gauche"
-            self.toptankEnemy.rotate_with_angle(135.)
-            
-        else:
-            
-            self.tank.set_position((self.width - 200, self.height - 200))
-            self.tank.spriteRotateDirection("gauche")
-            self.tank.rotation = "gauche"
-            self.toptank.rotate_with_angle(135.)
-            
-            self.tankEnemy.set_position((100, 100))
-            self.tankEnemy.spriteRotateDirection("droite")
-            self.tankEnemy.rotation = "droite"
-            self.toptankEnemy.rotate_with_angle(45.)
-        
-        
+        self.createTanks()        
         
         # Boucle principale du jeu
         while self.is_running:
             
-            # On vérifie que le jeu n'est pas fermé par un alt+f4
-            if not pygame.display.get_init():
-                close_connection()
-                break
-
             if self.in_main_menu:
                 self.mainmenuScreen()
                 self.in_main_menu = False
+            
+            # On vérifie que le jeu n'est pas fermé par un alt+f4
+            if not pygame.display.get_init():
+                close_connection()
+                self.connected = False
+                break
 
             # Dessin du fond
             self.screen.blit(self.background, (0,0))
@@ -140,8 +115,15 @@ class Game:
             
             # On prend le dernier message reçu
             message = get_last_message()
+            
+            if message == "Disconnected":
+                print("[CLIENT] Déconnexion du serveur.")
+                close_connection()
+                self.createTanks()
+                self.in_main_menu = True
+                
             #exemple de message = [[100, 100], 'droite', 114.94390526342458, [{'position': [1611, 859], 'velocity': 20, 'image_path': 'assets/bullet.png'}, {'position': [700, 1070], 'velocity': 20, 'image_path': 'assets/bullet.png'}]]
-            if message and message != self.first:                    
+            if message and (message != 1 or message != 2) and type(message) == list:                    
                 self.tankEnemy.set_position(message[0])
                 self.tankEnemy.spriteRotateDirection(message[1])
                 self.tankEnemy.rotation = message[1]
@@ -158,8 +140,7 @@ class Game:
             # Gestion des événements
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
-                    close_connection()
-                    pygame.quit()  # Arrêt de Pygame
+                    self.stopGame()  # Arrêt de Pygame
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # On enregistre que la touche est pressée
                 elif event.type == pygame.KEYUP:  # Si une touche est relâchée
@@ -178,6 +159,8 @@ class Game:
         display_surface.blit(debug_surface, debug_rect)   # Affichage de la surface de texte
 
     def mainmenuScreen(self):
+        if self.connected:
+            close_connection()
         is_open = True
         while is_open:
             self.screen.fill((0, 0, 0))
@@ -194,7 +177,7 @@ class Game:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
-                    pygame.quit()  # Arrêt de Pygame
+                    return self.stopGame()  # Arrêt de Pygame
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # On enregistre que la touche est pressée
                 elif event.type == pygame.KEYUP:  # Si une touche est relâchée
@@ -207,8 +190,7 @@ class Game:
                             if(self.status == "ingame"):
                                 is_open = False
                         elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 390 <= event.pos[1] <= 430:
-                            self.is_running = False
-                            is_open = False
+                            return self.stopGame()  # Arrêt de Pygame
                         elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 340 <= event.pos[1] <= 380:
                             self.status = "options"
                             self.is_running = True
@@ -227,7 +209,7 @@ class Game:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
-                    pygame.quit()  # Arrêt de Pygame
+                    self.stopGame()  # Arrêt de Pygame
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # On enregistre que la touche est pressée
                 elif event.type == pygame.KEYUP:  # Si une touche est relâchée
@@ -255,7 +237,7 @@ class Game:
             pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,540,150,40])
             self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 550))
 
-            ip_text = self.smallfont.render('IP du serveur' , True , (255,255,255)) # Création d'une surface de texte
+            ip_text = self.smallfont.render('Port du serveur' , True , (255,255,255)) # Création d'une surface de texte
             self.screen.blit(ip_text, (self.width/2 - ip_text.get_width()/2, 340)) # Dessine le texte ip
 
             play_text = self.smallfont.render('Rejoindre' , True , (255,255,255)) # Création d'une surface de texte
@@ -271,19 +253,19 @@ class Game:
             else:
                 pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 300/2,370,300,40])
 
-            ip_surface = self.smallfont.render(self.ip , True , (255,255,255)) # Création d'une surface de texte
+            ip_surface = self.smallfont.render(str(self.ip) , True , (255,255,255)) # Création d'une surface de texte
             self.screen.blit(ip_surface, (self.width/2 - ip_surface.get_width()/2, 380)) # Dessine le texte ip
 
             pygame.display.update()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
-                    pygame.quit()  # Arrêt de Pygame
+                    self.stopGame()  # Arrêt de Pygame
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # On enregistre que la touche est pressée
                     if(write_mode):
                         if event.key == pygame.K_BACKSPACE:
-                            self.ip = self.ip[:-1]
+                            self.ip = str(self.ip)[:-1]
                         else:
                             self.ip += event.unicode
                 elif event.type == pygame.KEYUP:  # Si une touche est relâchée
@@ -299,13 +281,59 @@ class Game:
                         else:
                             write_mode = False
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 - 150/2 + 300 and 440 <= event.pos[1] <= 480:
-                            print("connect to server", self.ip)
+                            if self.ip != None:
+                                try :
+                                    self.ip = int(self.ip)
+                                    if self.ip > 1000 and self.ip < 65535 and self.ip != 5555:
+                                        print("connect to server", self.ip)
+                                        response = connect_to_server(self.ip)
+                                        if response:
+                                            self.connected = True
+                                            self.num = 2
+                                            tank = self.tank
+                                            self.tank = self.tankEnemy
+                                            self.tankEnemy = tank
+                                            toptank = self.toptank
+                                            self.toptank = self.toptankEnemy
+                                            self.toptankEnemy = toptank
+                                            is_open = False
+                                            self.is_running = True
+                                            self.status = "ingame"
+                                except:
+                                    continue
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 - 150/2 + 300 and 490 <= event.pos[1] <= 530:
                             print("create server")
-                            is_open = False
-                            self.is_running = True
-                            self.status = "ingame"
+                            self.ip = int(self.ip)
+                            response = requests.post(f"http://127.0.0.1:5555/server/{self.ip}")
+                            if response.status_code == 200:
+                                print("serveur créé sur le port : ", type(self.ip))
+                                time.sleep(0.25)
+                                connect_to_server(self.ip)
+                                self.connected = True
+                                self.num = 1
+                                is_open = False
+                                self.is_running = True
+                                self.status = "ingame"
+                            
 
                 if(self.pressed.get(pygame.K_ESCAPE)):
                     self.in_main_menu = True
                     is_open = False
+                    
+    def stopGame(self):
+        self.is_running = False
+        pygame.quit()  # Arrêt de Pygame
+        close_connection()
+        print("Game stopped")
+        return None
+    
+    def createTanks(self):
+        self.tank.set_position((100, 100))
+        self.tank.spriteRotateDirection("droite")
+        self.tank.rotation = "droite"
+        self.toptank.rotate_with_angle(45.)
+            
+        self.tankEnemy.set_position((self.width - 200, self.height - 200))
+        self.tankEnemy.spriteRotateDirection("gauche")
+        self.tankEnemy.rotation = "gauche"
+        self.toptankEnemy.rotate_with_angle(135.)
