@@ -51,7 +51,7 @@ def server(port):
     if request.method == 'GET':
         if port in listPorts:
             return "Port déjà utilisé", 200
-        return "Serveur non démarré", 400
+        return "Serveur non disponible", 400
 
 # Fonction principale pour gérer un serveur
 def MyServer(SERVER_PORT=5556):
@@ -67,6 +67,8 @@ def MyServer(SERVER_PORT=5556):
 
     # Fonction pour gérer chaque client
     def handle_client(client_socket, client_address):
+        if SERVER_LOG:
+            print(f"    # [SERVEUR | {SERVER_PORT}] Connexion de {client_address}")
         if SERVER_LOG_FILE:
             file.write(f"# [SERVEUR | {SERVER_PORT}] Connexion de {client_address} [{datetime.datetime.now()}]\n")
         client_socket.send(pickle.dumps(len(clients)))
