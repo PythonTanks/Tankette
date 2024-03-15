@@ -13,14 +13,20 @@ import pickle  # Convertit les objets Python en octets et vice versa
 import logging  # Utilisé pour gérer les logs
 import datetime  # Pour manipuler des objets datetime
 import os  # Fournit des fonctionnalités pour interagir avec le système d'exploitation
+import yaml # Importation de la bibliothèque PyYAML pour lire le fichier de configuration
 
 # Configuration du serveur Flask
 app = Flask("TanketteServer")  # Crée une instance de Flask nommée "TanketteServer"
 log = logging.getLogger('werkzeug')  # Récupère le logger Werkzeug pour Flask
 log.disabled = True  # Désactive les logs de Flask
 
+configFile = open("../config.yaml", "r")
+configContent = yaml.load(configFile, Loader=yaml.Loader) # Charge le contenu du fichier de configuration
+
+SERVER_HOST = configContent["API_ADDRESS"] # Mettre l'adresse IP de la machine qui héberge le serveur
+
 # Configuration de l'hôte du serveur
-SERVER_HOST = '192.168.1.36'  # Mettre l'adresse IP de la machine qui héberge le serveur
+#SERVER_HOST = '172.24.18.22'  # Mettre l'adresse IP de la machine qui héberge le serveur
 
 # Configuration des logs
 SERVER_LOG = False  # Active/désactive les logs du serveur
@@ -28,12 +34,13 @@ SERVER_LOG_FILE = True  # Active/désactive l'écriture des logs dans un fichier
 API_LOG_FILE = True  # Active/désactive l'écriture des logs de l'API dans un fichier
 
 # Création du répertoire de logs s'il n'existe pas
-if not os.path.exists("Server/logs"):
-    os.mkdir("Server/logs")
+if API_LOG_FILE:
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
 
 # Ouverture du fichier de log API
 if API_LOG_FILE:
-    fileAPI = open("Server/logs/api.log", "a")  # Ouvre le fichier de log de l'API en mode append
+    fileAPI = open("logs/api.log", "a")  # Ouvre le fichier de log de l'API en mode append
 
 # Liste des ports utilisés
 listPorts = []
@@ -61,7 +68,7 @@ def MyServer(SERVER_PORT=5556):
     server_socket.listen(2)  # Met le socket en mode écoute pour les connexions entrantes
     print(f"# [SERVEUR | {SERVER_PORT}] Serveur prêt")
     if SERVER_LOG_FILE:
-        file = open(f"Server/logs/server_{SERVER_PORT}.log", "a")  # Ouvre le fichier de log du serveur en mode append
+        file = open(f"logs/server_{SERVER_PORT}.log", "a")  # Ouvre le fichier de log du serveur en mode append
         file.write(f"# [SERVEUR | {SERVER_PORT}] Serveur prêt [{datetime.datetime.now()}]\n")
         fileAPI.write(f"        # [API] Serveur démarré sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
 
@@ -143,7 +150,7 @@ def MyServer(SERVER_PORT=5556):
             if API_LOG_FILE:
                 fileAPI.write(f"# [API] Ports utilisés: {resulting[0:-2]} [{datetime.datetime.now()}]\n")
                 fileAPI.close()
-                fileAPI = open("Server/logs/api.log", "a")
+                fileAPI = open("logs/api.log", "a")
             break
 
 # Point d'entrée du programme

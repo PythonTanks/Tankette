@@ -1,6 +1,7 @@
 import pygame  # Importation de la bibliothèque Pygame pour la création de jeux
 import socket  # Importation de la bibliothèque Socket pour les communications réseau
 import threading  # Importation de la bibliothèque threading pour gérer les threads
+import yaml # Importation de la bibliothèque yaml pour manipuler des fichiers de configuration
 import time  # Importation de la bibliothèque time pour manipuler le temps
 import requests  # Importation de la bibliothèque requests pour effectuer des requêtes HTTP
 from modules.tank import Tank  # Importation de la classe Tank depuis le fichier modules/tank.py
@@ -8,7 +9,12 @@ from modules.topTank import TopTank  # Importation de la classe TopTank depuis l
 from modules.network import connect_to_server, send_message, get_last_message, close_connection  # Importation de certaines fonctions depuis le fichier modules/network.py
 from modules.bullet import Bullet  # Importation de la classe Bullet depuis le fichier modules/bullet.py
 
-IP_SERVER = "192.168.1.36"  # Adresse IP du serveur auquel se connecter
+configFile = open("../config.yaml", "r")
+configContent = yaml.load(configFile, Loader=yaml.Loader) # Charge le contenu du fichier de configuration
+
+IP_SERVER = configContent["API_ADDRESS"] # Adresse IP du serveur auquel se connecter
+
+#IP_SERVER = "192.168.1.36"  # Adresse IP du serveur auquel se connecter
 
 class Game:  # Définition de la classe Game
 
