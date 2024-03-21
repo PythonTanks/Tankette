@@ -1,10 +1,5 @@
 import sys
 
-# Vérifie que la version de Python est inférieure à 3.10
-if sys.version_info >= (3, 10):
-    print("La version de python doit être inférieure à 3.10")
-    sys.exit(1)
-
 # Import des modules nécessaires
 from flask import Flask, request  # Importe Flask pour créer un serveur web et request pour gérer les requêtes HTTP
 import threading  # Permet d'exécuter plusieurs tâches en parallèle
