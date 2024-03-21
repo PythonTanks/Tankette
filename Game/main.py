@@ -18,4 +18,4 @@ BACKGROUND_PATH = "assets/background.png"  # Chemin vers l'image de fond du jeu
 game = Game(title=TITLE, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, fps=FPS, background_path=BACKGROUND_PATH, debug=False, diagonales=False)
 
 # Lancement du jeu
-game.start()
+game.game()

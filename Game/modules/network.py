@@ -2,9 +2,11 @@ import socket  # Permet la communication réseau via les sockets
 import threading  # Utilisé pour exécuter des tâches en parallèle
 import pickle  # Convertit les objets Python en octets et vice versa
 import requests  # Permet de faire des requêtes HTTP
+import datetime  # Pour manipuler des objets datetime
 
 client_socket = None  # Initialise une variable pour le socket client
 last_message = None  # Initialise une variable pour stocker le dernier message reçu
+last_time = None  # Initialise une variable pour stocker le dernier temps reçu
 
 # Fonction pour se connecter au serveur
 def connect_to_server(SERVER_PORT, SERVER_HOST):
@@ -39,6 +41,11 @@ def receive_messages():
 
 # Fonction pour envoyer un message au serveur
 def send_message(data):
+    global last_time
+    if last_time is not None:
+        if (datetime.datetime.now() - last_time).total_seconds() < 0.2:
+            return
+    last_time = datetime.datetime.now()
     client_socket.send(pickle.dumps(data))  # Envoie des données au serveur après les avoir encodées avec pickle
     
 # Fonction pour récupérer le dernier message reçu par le client
