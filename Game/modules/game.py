@@ -273,6 +273,11 @@ class Game:  # Définition de la classe Game
                     self.stopGame()  # Arrêt de Pygame
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # Enregistrement de la touche pressée
+                    if event.key == pygame.K_ESCAPE:  # Si la touche ESCAPE est pressée
+                        self.status = "menu"  # Retour au menu principal
+                        is_open = False
+                        modify_up_key, modify_down_key, modify_left_key, modify_right_key, modify_shoot_key = False, False, False, False, False  # Réinitialisation des variables de modification
+                        
                     if modify_up_key:
                         self.controls["up_key"] = pygame.key.name(event.key)
                         modify_up_key = False
