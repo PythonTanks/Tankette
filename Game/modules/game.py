@@ -26,7 +26,7 @@ class Game:  # Définition de la classe Game
         self.background_path = pygame.image.load(background_path)  # Chargement de l'image de fond
         self.background = pygame.transform.scale(self.background_path, (self.width, self.height))  # Redimensionnement de l'image de fond
         self.icon_path = icon_path  # Chemin vers l'icône du jeu
-        self.ip = ""  # Adresse IP du serveur (initialisation à vide)
+        self.write_port_mode = ""  # Port du serveur (initialisation à vide)
         
         self.pressed = {}  # Dictionnaire pour gérer les touches pressées
         
@@ -48,6 +48,9 @@ class Game:  # Définition de la classe Game
         self.in_game = False  # Le jeu n'est pas en cours
         
         self.tanks = []  # Initialisation de la liste des tanks
+
+        self.port = 5556 # Port par défaut
+        self.ip = IP_SERVER # Adresse IP par défaut
         
     def setPygame(self):
         pygame.init()  # Initialisation de Pygame
@@ -62,7 +65,8 @@ class Game:  # Définition de la classe Game
         self.main_options = self.smallfont.render('Options' , True , (255,255,255)) 
         self.main_quit = self.smallfont.render('Quitter' , True , (255,255,255)) 
         self.main_back = self.smallfont.render('Retour' , True , (255,255,255)) 
-        self.ip_text = self.smallfont.render('Port du serveur' , True , (255,255,255))
+        self.port_text = self.smallfont.render('Port du serveur' , True , (255,255,255))
+        self.ip_text = self.smallfont.render('Adresse IP du serveur' , True , (255,255,255))
         self.play_text = self.smallfont.render('Rejoindre' , True , (255,255,255))
         self.create_text = self.smallfont.render('Créer' , True , (255,255,255))
 
@@ -73,6 +77,8 @@ class Game:  # Définition de la classe Game
         self.setFonts()  # Initialisation des polices de caractères
         
         self.screen.blit(self.background, (0,0))  # Affichage de l'image de fond
+
+        message = None  # Initialisation de la variable message (évite les erreurs de type NoneType)
         
         # Boucle principale du jeu
         while self.is_running:
@@ -129,7 +135,7 @@ class Game:  # Définition de la classe Game
                 
                 if self.debug:
                     print(f"[CLIENT] Message reçu: {message}")  # Affichage du message reçu du serveur
-                    
+  
             pygame.display.update()  # Mise à jour de l'affichage
             
             # Gestion des événements
@@ -222,7 +228,8 @@ class Game:  # Définition de la classe Game
 
     def playScreen(self):
         is_open = True
-        write_mode = False  # Variable pour indiquer si le mode d'écriture est activé
+        write_port_mode = False  # Variable pour indiquer si le mode d'écriture est activé
+        write_ip_mode = False  # Variable pour indiquer si le mode d'écriture est activé
 
         while is_open:
 
@@ -232,7 +239,9 @@ class Game:  # Définition de la classe Game
             pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,540,150,40])
             self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 550))  # Affichage du bouton "Retour"
 
-            self.screen.blit(self.ip_text, (self.width/2 - self.ip_text.get_width()/2, 340))  # Affichage du texte ip
+            self.screen.blit(self.port_text, (self.width/2 - self.port_text.get_width()/2, 340))  # Affichage du texte port
+
+            self.screen.blit(self.ip_text, (self.width/2 - self.ip_text.get_width()/2, 260))  # Affichage du texte ip
 
             pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,440,150,40])
             self.screen.blit(self.play_text, (self.width/2 - self.play_text.get_width()/2, 450))  # Affichage du texte "Rejoindre"
@@ -240,14 +249,24 @@ class Game:  # Définition de la classe Game
             pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,490,150,40])
             self.screen.blit(self.create_text, (self.width/2 - self.create_text.get_width()/2, 500))  # Affichage du texte "Créer"
 
-            # Affichage du rectangle pour saisir l'adresse IP
-            if write_mode:
+            # Affichage du rectangle pour saisir l'adresse IP / port
+            if write_port_mode:
                 pygame.draw.rect(self.screen,(75,75,75),[self.width/2 - 300/2,370,300,40])
             else:
                 pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 300/2,370,300,40])
+            
+            if write_ip_mode:
+                pygame.draw.rect(self.screen,(75,75,75),[self.width/2 - 300/2,290,300,40])
+            else:
+                pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 300/2,290,300,40])
+
+            
+
+            port_surface = self.smallfont.render(str(self.port) , True , (255,255,255))  # Création d'une surface de texte
+            self.screen.blit(port_surface, (self.width/2 - port_surface.get_width()/2, 380))  # Affichage du texte port
 
             ip_surface = self.smallfont.render(str(self.ip) , True , (255,255,255))  # Création d'une surface de texte
-            self.screen.blit(ip_surface, (self.width/2 - ip_surface.get_width()/2, 380))  # Affichage du texte ip
+            self.screen.blit(ip_surface, (self.width/2 - ip_surface.get_width()/2, 300))  # Affichage du texte ip
 
             pygame.display.update()  # Mise à jour de l'affichage
 
@@ -256,30 +275,35 @@ class Game:  # Définition de la classe Game
                     self.stopGame()  # Arrêt de Pygame
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # On enregistre que la touche est pressée
-                    if write_mode:
+                    if write_port_mode:
                         if event.key == pygame.K_BACKSPACE:
-                            self.ip = str(self.ip)[:-1]  # Suppression du dernier caractère de l'adresse IP
+                            self.port = str(self.port)[:-1]  # Suppression du dernier caractère du port
                         else:
-                            self.ip += event.unicode  # Ajout du caractère saisi à l'adresse IP
+                            self.port += event.unicode  # Ajout du caractère saisi au port
+                    if write_ip_mode:
+                        if event.key == pygame.K_BACKSPACE:
+                            self.ip = str(self.ip)[:-1]
+                        else:
+                            self.ip += event.unicode
                 elif event.type == pygame.KEYUP:  # Si une touche est relâchée
                     self.pressed[event.key] = False  # On enregistre que la touche n'est plus pressée
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         # Vérification des clics sur les différents boutons
-                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 540 <= event.pos[1] <= 580:
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 540 <= event.pos[1] <= 580: #clic sur le bouton retour
                             self.is_running = True
                             is_open = False
                             self.status = "menu"
-                        if self.width/2 - 300/2 <= event.pos[0] <= self.width/2 - 300/2 + 300 and 370 <= event.pos[1] <= 410:
-                            write_mode = True  # Activation du mode d'écriture
-                        else:
-                            write_mode = False  # Désactivation du mode d'écriture
-                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 - 150/2 + 300 and 440 <= event.pos[1] <= 480:
-                            if self.ip != None:
+                        if self.width/2 - 300/2 <= event.pos[0] <= self.width/2 - 300/2 + 300 and 370 <= event.pos[1] <= 410: #clic sur le champ port
+                            write_port_mode = True  # Activation du mode d'écriture
+                        else: #clic autre part
+                            write_port_mode = False  # Désactivation du mode d'écriture
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 440 <= event.pos[1] <= 480: #clic sur le bouton rejoindre
+                            if self.write_port_mode != None:
                                 try :
-                                    self.ip = int(self.ip)
-                                    if self.ip > 1000 and self.ip < 65535 and self.ip != 5555:
-                                        response = connect_to_server(self.ip, IP_SERVER)
+                                    self.write_port_mode = int(self.write_port_mode)
+                                    if self.write_port_mode > 1000 and self.write_port_mode < 65535 and self.write_port_mode != 5555:
+                                        response = connect_to_server(self.write_port_mode, IP_SERVER)
                                         if response:
                                             self.connected = True
                                             self.num = 2
@@ -295,12 +319,12 @@ class Game:  # Définition de la classe Game
                                             self.tanks = [self.createMyTank(), self.createEnemyTank()]
                                 except:
                                     continue
-                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 - 150/2 + 300 and 490 <= event.pos[1] <= 530:
-                            self.ip = int(self.ip)
-                            response = requests.post(f"http://{IP_SERVER}:5555/server/{self.ip}")
+                        if self.width/2 + 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 490 <= event.pos[1] <= 530: 
+                            self.write_port_mode = int(self.write_port_mode)
+                            response = requests.post(f"http://{IP_SERVER}:5555/server/{self.write_port_mode}")
                             if response.status_code == 200:
                                 time.sleep(0.25)
-                                connect_to_server(self.ip, IP_SERVER)
+                                connect_to_server(self.write_port_mode, IP_SERVER)
                                 self.connected = True
                                 self.num = 1
                                 is_open = False
