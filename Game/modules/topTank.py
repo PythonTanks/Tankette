@@ -1,6 +1,7 @@
-import pygame
-import math
+import pygame  # Bibliothèque pour le développement de jeux vidéo
+import math  # Fournit des fonctions mathématiques
 
+# Classe représentant le dessus du tank
 class TopTank(pygame.sprite.Sprite):
     def __init__(self, game, tank, image_path="assets/toptank.png"):
         super().__init__()  # Appel du constructeur de la classe parente (pygame.sprite.Sprite)
@@ -10,7 +11,7 @@ class TopTank(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (150, 150))  # Redimensionnement de l'image aux dimensions spécifiées
         dimensions = (150, 150)
         if game.debug:
-            #ajout d'une bordure rouge autour de l'image
+            # Ajout d'une bordure rouge autour de l'image pour le mode débogage
             self.image.fill((255, 0, 0), rect=[0, 0, dimensions[0], 5])
             self.image.fill((255, 0, 0), rect=[0, 0, 5, dimensions[1]])
             self.image.fill((255, 0, 0), rect=[0, dimensions[1]-5, dimensions[0], 5])
@@ -24,6 +25,7 @@ class TopTank(pygame.sprite.Sprite):
         self.rotate()  # Appel de la méthode pour faire tourner le tank
         self.update_position()  # Appel de la méthode pour mettre à jour la position du tank
 
+    # Méthode pour faire tourner le dessus du tank
     def rotate(self):
         # Calcul de l'angle entre la position de la souris et la position du tank
         mouse_position = pygame.mouse.get_pos()
@@ -41,7 +43,8 @@ class TopTank(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(center=(tank_center[0] + 10, tank_center[1] - 10))
         else:
             self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
-            
+
+    # Méthode pour faire tourner le dessus du tank avec un angle spécifié
     def rotate_with_angle(self, angle):
         self.direction = self.tank.rotation
         tank_center = (self.tank.rect.x + self.tank.rect.width / 2, self.tank.rect.y + self.tank.rect.height / 2)
@@ -56,14 +59,16 @@ class TopTank(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
         self.angle = angle
 
+    # Méthode pour mettre à jour la position du dessus du tank
     def update_position(self):
         # Mise à jour de la position du tank pour correspondre à celle du tank associé
         self.rect.center = self.tank.rect.center
 
+    # Méthode pour obtenir l'angle actuel de rotation du dessus du tank
     def get_angle(self):
-        # Retourne l'angle actuel de rotation du tank
-        return self.angle
+        return self.angle  # Retourne l'angle actuel de rotation du tank
 
+    # Méthode pour obtenir la position du bout du canon du tank
     def get_position_bout_canon(self):
         # Calcule et retourne la position du bout du canon du tank
         center = self.rect.center
