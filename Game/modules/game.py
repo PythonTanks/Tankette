@@ -42,8 +42,6 @@ class Game:  # Définition de la classe Game
         
         self.connected = False  # Initialisation de la variable indiquant l'état de connexion au serveur
         
-        self.setFonts()  # Initialisation des polices de caractères
-        
         self.is_running = True  # Le jeu est en cours d'exécution
         self.in_main_menu = True  # Le jeu est dans le menu principal
         
@@ -71,6 +69,8 @@ class Game:  # Définition de la classe Game
     def game(self):  # Méthode pour démarrer le jeu
         
         self.setPygame()  # Initialisation de Pygame
+
+        self.setFonts()  # Initialisation des polices de caractères
         
         self.screen.blit(self.background, (0,0))  # Affichage de l'image de fond
         
