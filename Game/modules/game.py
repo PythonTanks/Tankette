@@ -51,6 +51,8 @@ class Game:  # Définition de la classe Game
 
         self.port = 5556 # Port par défaut
         self.ip = IP_SERVER # Adresse IP par défaut
+
+        self.controls = {"up_key" : "z", "down_key": "s", "left_key" : "q", "right_key" : "d", "shoot_key" : "space"} # Initialisation du dictionnaire des contrôles
         
     def setPygame(self):
         pygame.init()  # Initialisation de Pygame
@@ -58,6 +60,7 @@ class Game:  # Définition de la classe Game
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)  # Création de la fenêtre du jeu
     
     def setFonts(self):
+        # Initialisation des polices de caractères (textes généraux)
         self.smallfont = pygame.font.Font(None, 35)  
         self.largefont = pygame.font.Font(None, 75)
         self.main_title = self.largefont.render('Tanks !' , True , (150,150,150)) 
@@ -65,10 +68,19 @@ class Game:  # Définition de la classe Game
         self.main_options = self.smallfont.render('Options' , True , (255,255,255)) 
         self.main_quit = self.smallfont.render('Quitter' , True , (255,255,255)) 
         self.main_back = self.smallfont.render('Retour' , True , (255,255,255)) 
+
+        # Initialisation des polices de caractères (textes menu jouer)
         self.port_text = self.smallfont.render('Port du serveur' , True , (255,255,255))
         self.ip_text = self.smallfont.render('Adresse IP du serveur' , True , (255,255,255))
         self.play_text = self.smallfont.render('Rejoindre' , True , (255,255,255))
         self.create_text = self.smallfont.render('Créer' , True , (255,255,255))
+
+        # Initialisation des polices de caractères (textes options)
+        self.up_key = self.smallfont.render('Haut' , True , (255,255,255))
+        self.down_key = self.smallfont.render('Bas' , True , (255,255,255))
+        self.left_key = self.smallfont.render('Gauche' , True , (255,255,255))
+        self.right_key = self.smallfont.render('Droite' , True , (255,255,255))
+        self.shoot_key = self.smallfont.render('Tirer' , True , (255,255,255))
 
     def game(self):  # Méthode pour démarrer le jeu
         
@@ -199,12 +211,60 @@ class Game:  # Définition de la classe Game
 
     def optionsScreen(self):
         is_open = True
+        modify_up_key = False  # Variable pour indiquer si le mode de modification est activé
+        modify_down_key = False
+        modify_left_key = False
+        modify_right_key = False
+        modify_shoot_key = False
+
         while is_open:
             self.screen.fill((0, 0, 0))  # Remplissage de l'écran en noir
 
             self.screen.blit(self.main_title, (self.width/2 - self.main_title.get_width()/2, 50))  # Affichage du titre
+
+            self.screen.blit(self.up_key, (self.width/2 - self.up_key.get_width() - 200/2, 210))  # Affichage du texte "Haut"
+
+            self.screen.blit(self.down_key, (self.width/2 - self.down_key.get_width() - 200/2, 260))  # Affichage du texte "Bas"
+
+            self.screen.blit(self.left_key, (self.width/2 - self.left_key.get_width() - 200/2, 310))  # Affichage du texte "Gauche"
+
+            self.screen.blit(self.right_key, (self.width/2 - self.right_key.get_width() - 200/2, 360))  # Affichage du texte "Droite"
+
+            self.screen.blit(self.shoot_key, (self.width/2 - self.shoot_key.get_width() - 200/2, 410))  # Affichage du texte "Tirer"
+
             pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,490,150,40])
-            self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 500))  # Affichage du bouton "Retour"
+            self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 500)) # Affichage du bouton "Retour"
+
+            if(modify_up_key):
+                pygame.draw.rect(self.screen,(75,75,75),[self.width/2 - 150/2,200,150,40])
+            else:
+                pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,200,150,40])
+            
+            if(modify_down_key):
+                pygame.draw.rect(self.screen,(75,75,75),[self.width/2 - 150/2,250,150,40])
+            else:
+                pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,250,150,40])
+
+            if(modify_left_key):
+                pygame.draw.rect(self.screen,(75,75,75),[self.width/2 - 150/2,300,150,40])
+            else:
+                pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,300,150,40])
+
+            if(modify_right_key):
+                pygame.draw.rect(self.screen,(75,75,75),[self.width/2 - 150/2,350,150,40])
+            else:
+                pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,350,150,40])
+
+            if(modify_shoot_key):
+                pygame.draw.rect(self.screen,(75,75,75),[self.width/2 - 150/2,400,150,40])
+            else:
+                pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,400,150,40])
+
+            self.screen.blit(self.smallfont.render(self.controls["up_key"], True, (255,255,255)), (self.width/2 - 150/2 + 10, 210))  # Affichage de la touche associée à "Haut"
+            self.screen.blit(self.smallfont.render(self.controls["down_key"], True, (255,255,255)), (self.width/2 - 150/2 + 10, 260))  # Affichage de la touche associée à "Bas"
+            self.screen.blit(self.smallfont.render(self.controls["left_key"], True, (255,255,255)), (self.width/2 - 150/2 + 10, 310))  # Affichage de la touche associée à "Gauche"
+            self.screen.blit(self.smallfont.render(self.controls["right_key"], True, (255,255,255)), (self.width/2 - 150/2 + 10, 360))  # Affichage de la touche associée à "Droite"
+            self.screen.blit(self.smallfont.render(self.controls["shoot_key"], True, (255,255,255)), (self.width/2 - 150/2 + 10, 410))  # Affichage de la touche associée à "Tirer"
 
             pygame.display.update()  # Mise à jour de l'affichage
 
@@ -213,6 +273,22 @@ class Game:  # Définition de la classe Game
                     self.stopGame()  # Arrêt de Pygame
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # Enregistrement de la touche pressée
+                    if modify_up_key:
+                        self.controls["up_key"] = pygame.key.name(event.key)
+                        modify_up_key = False
+                    elif modify_down_key:
+                        self.controls["down_key"] = pygame.key.name(event.key)
+                        modify_down_key = False
+                    elif modify_left_key:
+                        self.controls["left_key"] = pygame.key.name(event.key)
+                        modify_left_key = False
+                    elif modify_right_key:
+                        self.controls["right_key"] = pygame.key.name(event.key)
+                        modify_right_key = False
+                    elif modify_shoot_key:
+                        self.controls["shoot_key"] = pygame.key.name(event.key)
+                        modify_shoot_key = False
+        
                 elif event.type == pygame.KEYUP:  # Si une touche est relâchée
                     self.pressed[event.key] = False  # Enregistrement de la touche relâchée
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -221,6 +297,23 @@ class Game:  # Définition de la classe Game
                             self.is_running = True
                             is_open = False
                             self.status = "menu"
+                        elif (self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 200 <= event.pos[1] <= 240):
+                            modify_up_key = True
+                            modify_down_key, modify_left_key, modify_right_key, modify_shoot_key = False, False, False, False
+                        elif (self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 250 <= event.pos[1] <= 290):
+                            modify_down_key = True
+                            modify_up_key, modify_left_key, modify_right_key, modify_shoot_key = False, False, False, False
+                        elif (self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 300 <= event.pos[1] <= 340):
+                            modify_left_key = True
+                            modify_up_key, modify_down_key, modify_right_key, modify_shoot_key = False, False, False, False
+                        elif (self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 350 <= event.pos[1] <= 390):
+                            modify_right_key = True
+                            modify_up_key, modify_down_key, modify_left_key, modify_shoot_key = False, False, False, False
+                        elif (self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 400 <= event.pos[1] <= 440):
+                            modify_shoot_key = True
+                            modify_up_key, modify_down_key, modify_left_key, modify_right_key = False, False, False, False
+                        else:
+                            modify_up_key, modify_down_key, modify_left_key, modify_right_key, modify_shoot_key = False, False, False, False, False
 
                 if self.pressed.get(pygame.K_ESCAPE):
                     self.in_main_menu = True
@@ -298,6 +391,10 @@ class Game:  # Définition de la classe Game
                             write_port_mode = True  # Activation du mode d'écriture
                         else: #clic autre part
                             write_port_mode = False  # Désactivation du mode d'écriture
+                        if self.width/2 - 300/2 <= event.pos[0] <= self.width/2 - 300/2 + 300 and 290 <= event.pos[1] <= 330: #clic sur le champ ip
+                            write_ip_mode = True  # Activation du mode d'écriture
+                        else: #clic autre part
+                            write_ip_mode = False
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 440 <= event.pos[1] <= 480: #clic sur le bouton rejoindre
                             if self.write_port_mode != None:
                                 try :
@@ -319,12 +416,13 @@ class Game:  # Définition de la classe Game
                                             self.tanks = [self.createMyTank(), self.createEnemyTank()]
                                 except:
                                     continue
-                        if self.width/2 + 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 490 <= event.pos[1] <= 530: 
-                            self.write_port_mode = int(self.write_port_mode)
-                            response = requests.post(f"http://{IP_SERVER}:5555/server/{self.write_port_mode}")
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 490 <= event.pos[1] <= 530: #clic sur le bouton créer
+                            print("[CLIENT] Creating server on port " + str(self.ip) + ":" + str(self.port))
+                            self.port = int(self.port)
+                            response = requests.post(f"http://{self.ip}:5555/server/{self.port}")
                             if response.status_code == 200:
                                 time.sleep(0.25)
-                                connect_to_server(self.write_port_mode, IP_SERVER)
+                                connect_to_server(self.port, self.ip)
                                 self.connected = True
                                 self.num = 1
                                 is_open = False
