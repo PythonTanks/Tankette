@@ -55,4 +55,5 @@ def get_last_message():
 
 # Fonction pour fermer la connexion avec le serveur
 def close_connection():
-    client_socket.close()  # Ferme la connexion avec le serveur
+    if(client_socket is not None):
+        client_socket.close()  # Ferme la connexion avec le serveur
