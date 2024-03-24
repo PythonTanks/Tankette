@@ -1,16 +1,18 @@
-import pygame
+import pygame  # Importe le module pygame
 
+# Classe représentant un objet de jeu, héritant de pygame.sprite.Sprite
 class GameObject(pygame.sprite.Sprite):
     # Le constructeur de la classe GameObject
     def __init__(self, game, image_path, initial_position=(0, 0), dimensions=(100, 100), custom_rotate=0):
         super().__init__()  # Appel du constructeur de la classe parente (pygame.sprite.Sprite)
         self.game = game  # Référence à l'instance de la classe Game
             
+        # Chargement de l'image à partir du chemin spécifié et redimensionnement aux dimensions spécifiées
+        self.image = pygame.image.load(image_path)
+        self.image = pygame.transform.scale(self.image, dimensions)
         
-        self.image = pygame.image.load(image_path)  # Chargement de l'image à partir du chemin spécifié
-        self.image = pygame.transform.scale(self.image, dimensions)  # Redimensionnement de l'image aux dimensions spécifiées
+        # Ajout d'une bordure rouge autour de l'image si le mode debug est activé
         if game.debug:
-            #ajout d'une bordure rouge autour de l'image
             self.image.fill((255, 0, 0), rect=[0, 0, dimensions[0], 5])
             self.image.fill((255, 0, 0), rect=[0, 0, 5, dimensions[1]])
             self.image.fill((255, 0, 0), rect=[0, dimensions[1]-5, dimensions[0], 5])
@@ -26,8 +28,11 @@ class GameObject(pygame.sprite.Sprite):
         self.image_up_right = pygame.transform.rotate(self.image, -45)
         self.image_down_left = pygame.transform.rotate(self.image, 135)
         self.image_down_right = pygame.transform.rotate(self.image, -135)
-        self.rect = self.image.get_rect()  # Obtention du rectangle englobant l'image (utilisé pour le positionnement et la détection des collisions)
-        self.rect.topleft = initial_position  # Positionnement du rectangle à la position initiale spécifiée
+        
+        # Obtention du rectangle englobant l'image (utilisé pour le positionnement et la détection des collisions)
+        self.rect = self.image.get_rect()
+        # Positionnement du rectangle à la position initiale spécifiée
+        self.rect.topleft = initial_position
 
     # Méthode pour obtenir la position actuelle de l'objet
     def get_position(self):
