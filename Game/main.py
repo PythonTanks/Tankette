@@ -10,7 +10,7 @@ usr32 = ctypes.windll.user32
 # Définition des constantes pour le jeu
 SCREEN_WIDTH = usr32.GetSystemMetrics(0)  # Obtention de la largeur de l'écran en pixels
 SCREEN_HEIGHT = usr32.GetSystemMetrics(1)  # Obtention de la hauteur de l'écran en pixels
-FPS = 180  # Nombre de frames par seconde
+FPS = 1000  # Nombre de frames par seconde
 TITLE = "TANKETTE"  # Titre de la fenêtre du jeu
 BACKGROUND_PATH = "assets/background.png"  # Chemin vers l'image de fond du jeu
 

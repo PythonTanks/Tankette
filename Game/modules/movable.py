@@ -10,11 +10,6 @@ class Movable(GameObject):
         self.velocity = velocity
         # Chemin de l'image de l'objet mobile
         self.image_pathmovable = image_path
-    
-    # Méthode pour faire tourner l'image de l'objet
-    def spriteRotate(self, rotate):
-        # Rotation de l'image de l'objet en fonction de la direction spécifiée
-        self.image = rotate
         
     # Méthode pour gérer les collisions avec les bords de l'écran
     def collision(self, dx, dy):
@@ -30,24 +25,3 @@ class Movable(GameObject):
             self.rect.x += dx
             self.rect.y += dy
         self.spriteRotate(rotate)  # Appel de la méthode pour orienter l'image de l'objet en fonction de sa direction
-        
-    # Méthode pour orienter l'image de l'objet en fonction de sa direction
-    def spriteRotateDirection(self, direction):
-        if direction == "haut":
-            self.spriteRotate(self.image_up)
-        elif direction == "bas":
-            self.spriteRotate(self.image_down)
-        elif direction == "droite":
-            self.spriteRotate(self.image_right)
-        elif direction == "gauche":
-            self.spriteRotate(self.image_left)
-        elif direction == "haut_droit":
-            self.spriteRotate(self.image_up_right)
-        elif direction == "haut_gauche":
-            self.spriteRotate(self.image_up_left)
-        elif direction == "bas_droit":
-            self.spriteRotate(self.image_down_right)
-        elif direction == "bas_gauche":
-            self.spriteRotate(self.image_down_left)
-        else:
-            self.spriteRotate(self.image_custom)  # Utilisation d'une image personnalisée si la direction spécifiée n'est pas reconnue

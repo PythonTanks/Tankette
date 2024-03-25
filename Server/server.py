@@ -25,8 +25,8 @@ SERVER_HOST = configContent["API_ADDRESS"] # Mettre l'adresse IP de la machine q
 
 # Configuration des logs
 SERVER_LOG = False  # Active/désactive les logs du serveur
-SERVER_LOG_FILE = True  # Active/désactive l'écriture des logs dans un fichier
-API_LOG_FILE = True  # Active/désactive l'écriture des logs de l'API dans un fichier
+SERVER_LOG_FILE = False  # Active/désactive l'écriture des logs dans un fichier
+API_LOG_FILE = False  # Active/désactive l'écriture des logs de l'API dans un fichier
 
 # Création du répertoire de logs s'il n'existe pas
 if API_LOG_FILE:
@@ -69,15 +69,22 @@ def MyServer(SERVER_PORT=5556):
 
     # Fonction pour gérer chaque client
     def handle_client(client_socket, client_address):
+        error = False
         if SERVER_LOG:
             print(f"    # [SERVEUR | {SERVER_PORT}] Connexion de {client_address}")
         if SERVER_LOG_FILE:
             file.write(f"# [SERVEUR | {SERVER_PORT}] Connexion de {client_address} [{datetime.datetime.now()}]\n")
-        client_socket.send(pickle.dumps(len(clients)))
+        # On envoie aux autres clients la connexion du nouveau client
+        for c in clients:
+            if c != client_socket:
+                try:
+                    c.send(pickle.dumps(f"Connected"))
+                except Exception as e:
+                    continue
 
-        while True:
+        while not error:
             try:
-                data = pickle.loads(client_socket.recv(1024))
+                data = pickle.loads(client_socket.recv(2**10))
                 if not data:
                     break
                 if SERVER_LOG:
@@ -91,6 +98,10 @@ def MyServer(SERVER_PORT=5556):
                             c.send(pickle.dumps(data))
                         except:
                             continue
+            except ValueError:
+                clients.remove(client_socket)
+                server_socket.close()
+                return None
             except Exception as e:
                 if SERVER_LOG:
                     print(f"# [SERVEUR | {SERVER_PORT}] Erreur: {e}")
@@ -102,16 +113,11 @@ def MyServer(SERVER_PORT=5556):
                             c.send(pickle.dumps("Disconnected"))
                         except Exception as e:
                             continue
-                break
-
-        if SERVER_LOG_FILE:
-            file.write(f"# [SERVEUR | {SERVER_PORT}] Connexion de {client_address} fermée [{datetime.datetime.now()}]\n")
-        client_socket.close()
-        StopServer()
-
-    # Fonction pour arrêter le serveur
-    def StopServer():
-        server_socket.close()
+                if SERVER_LOG_FILE:
+                    file.write(f"# [SERVEUR | {SERVER_PORT}] Connexion de {client_address} fermée [{datetime.datetime.now()}]\n")
+                clients.remove(client_socket)
+                server_socket.close()
+                return None
 
     clients = []
 
@@ -127,9 +133,9 @@ def MyServer(SERVER_PORT=5556):
         except Exception as e:
             print(f"# [SERVEUR | {SERVER_PORT}] Arrêt du serveur")
             if SERVER_LOG_FILE:
-                file.write(f"# [SERVEUR | {SERVER_PORT}] Arrêt du serveur [{datetime.datetime.now()}]\n")
+                file.write(f"# [SERVEUR | {SERVER_PORT}] Arret du serveur [{datetime.datetime.now()}]\n")
                 file.close()
-                fileAPI.write(f"        # [API] Serveur arrêté sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
+                fileAPI.write(f"        # [API] Serveur arrete sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
             listPorts.remove(SERVER_PORT)
             if len(listPorts) == 0:
                 print("---------------------------------")
@@ -137,7 +143,7 @@ def MyServer(SERVER_PORT=5556):
                 print("---------------------------------")
                 if API_LOG_FILE:
                     fileAPI.write(f"# [API] Aucun serveur en cours d'utilisation [{datetime.datetime.now()}]\n")
-                break
+                return None
             resulting = ""
             for i in listPorts:
                 resulting += str(i) + ", "
@@ -145,10 +151,10 @@ def MyServer(SERVER_PORT=5556):
             print(f"[API] Ports utilisés: {resulting[0:-2]}")
             print("---------------------------------")
             if API_LOG_FILE:
-                fileAPI.write(f"# [API] Ports utilisés: {resulting[0:-2]} [{datetime.datetime.now()}]\n")
+                fileAPI.write(f"# [API] Ports utilises: {resulting[0:-2]} [{datetime.datetime.now()}]\n")
                 fileAPI.close()
                 fileAPI = open("logs/api.log", "a")
-            break
+            return None
 
 # Point d'entrée du programme
 if __name__ == '__main__':

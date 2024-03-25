@@ -33,7 +33,7 @@ class GameObject(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         # Positionnement du rectangle à la position initiale spécifiée
         self.rect.topleft = initial_position
-
+        
     # Méthode pour obtenir la position actuelle de l'objet
     def get_position(self):
         return [self.rect.x, self.rect.y]
@@ -50,3 +50,24 @@ class GameObject(pygame.sprite.Sprite):
     # Méthode pour obtenir l'image de l'objet (utilisée pour le dessin)
     def get_Sprite(self):
         return self.image
+    
+        # Méthode pour faire tourner l'image de l'objet
+    def spriteRotate(self, rotate):
+        if rotate == "droite":
+            self.image = self.image_right
+        elif rotate == "gauche":
+            self.image = self.image_left
+        elif rotate == "haut":
+            self.image = self.image_up
+        elif rotate == "bas":
+            self.image = self.image_down
+        elif rotate == "haut_droit":
+            self.image = self.image_up_right
+        elif rotate == "haut_gauche":
+            self.image = self.image_up_left
+        elif rotate == "bas_droit":
+            self.image = self.image_down_right
+        elif rotate == "bas_gauche":
+            self.image = self.image_down_left
+        else:
+            self.image = self.image_custom

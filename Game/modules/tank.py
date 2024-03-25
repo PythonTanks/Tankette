@@ -5,7 +5,7 @@ from modules.bullet import Bullet  # Importe la classe Bullet du module bullet
 
 # Classe représentant un tank
 class Tank(Movable):
-    def __init__(self, game, image_path="assets/tank.png", initial_position=(0, 0), dimensions=(80, 100), velocity=10):
+    def __init__(self, game, image_path="assets/tank.png", initial_position=(0, 0), dimensions=(80, 100), velocity=10, rotation="haut"):
         # Appel du constructeur de la classe parente (Movable)
         super().__init__(game, image_path, initial_position, dimensions, velocity)
         # Référence à l'instance de la classe Game
@@ -15,7 +15,8 @@ class Tank(Movable):
         # Temps du dernier tir
         self.last_shot = 0
         # Rotation initiale du tank
-        self.rotation = "haut"
+        self.rotation = rotation
+        self.move(initial_position[0], initial_position[1], self.rotation)  # Déplacement initial du tank
 
     # Méthode pour lancer un projectile
     def launch_projectile(self, angle, start):
@@ -42,28 +43,28 @@ class Tank(Movable):
                 self.image = pygame.transform.rotate(self.image, -45)
                 dx += self.velocity
                 dy -= self.velocity
-                self.move(dx, dy, self.image_up_right)
+                self.move(dx, dy, "haut_droit")
                 self.rotation = "haut_droit"
             elif keys[pygame.K_d] and keys[pygame.K_s]:
                 # Rotation et déplacement du tank vers le bas et la droite
                 self.image = pygame.transform.rotate(self.image, -135)
                 dx += self.velocity
                 dy += self.velocity
-                self.move(dx, dy, self.image_down_right)
+                self.move(dx, dy, "bas_droit")
                 self.rotation = "bas_droit"
             elif keys[pygame.K_q] and keys[pygame.K_z]:
                 # Rotation et déplacement du tank vers le haut et la gauche
                 self.image = pygame.transform.rotate(self.image, 45)
                 dx -= self.velocity
                 dy -= self.velocity
-                self.move(dx, dy, self.image_up_left)
+                self.move(dx, dy, "haut_gauche")
                 self.rotation = "haut_gauche"
             elif keys[pygame.K_q] and keys[pygame.K_s]:
                 # Rotation et déplacement du tank vers le bas et la gauche
                 self.image = pygame.transform.rotate(self.image, 135)
                 dx -= self.velocity
                 dy += self.velocity
-                self.move(dx, dy, self.image_down_left)
+                self.move(dx, dy, "bas_gauche")
                 self.rotation = "bas_gauche"
         else:
             # Gestion des mouvements sans diagonale
@@ -71,25 +72,25 @@ class Tank(Movable):
                 # Rotation et déplacement du tank vers la droite
                 self.image = pygame.transform.rotate(self.image, -90)
                 dx += self.velocity
-                self.move(dx, dy, self.image_right)
+                self.move(dx, dy, "droite")
                 self.rotation = "droite"
             elif keys[pygame.K_q]:
                 # Rotation et déplacement du tank vers la gauche
                 self.image = pygame.transform.rotate(self.image, 90)
                 dx -= self.velocity
-                self.move(dx, dy, self.image_left)
+                self.move(dx, dy, "gauche")
                 self.rotation = "gauche"
             elif keys[pygame.K_z]:
                 # Rotation et déplacement du tank vers le haut
                 self.image = pygame.transform.rotate(self.image, 0)
                 dy -= self.velocity
-                self.move(dx, dy, self.image_up)
+                self.move(dx, dy, "haut")
                 self.rotation = "haut"
             elif keys[pygame.K_s]:
                 # Rotation et déplacement du tank vers le bas
                 self.image = pygame.transform.rotate(self.image, 180)
                 dy += self.velocity
-                self.move(dx, dy, self.image_down)
+                self.move(dx, dy, "bas")
                 self.rotation = "bas"
                 
         # Si la touche 'espace' est pressée

@@ -3,7 +3,7 @@ import math  # Fournit des fonctions mathématiques
 
 # Classe représentant le dessus du tank
 class TopTank(pygame.sprite.Sprite):
-    def __init__(self, game, tank, image_path="assets/toptank.png"):
+    def __init__(self, game, tank, image_path="assets/toptank.png", angle=0):
         super().__init__()  # Appel du constructeur de la classe parente (pygame.sprite.Sprite)
         self.game = game  # Référence à l'instance de la classe Game
         self.tank = tank  # Référence à l'instance de la classe Tank associée
@@ -19,7 +19,16 @@ class TopTank(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.image, -90)  # Rotation initiale de l'image
         self.rect = self.image.get_rect()  # Obtention du rectangle englobant l'image (utilisé pour le positionnement et la détection des collisions)
         self.image_original = self.image  # Sauvegarde de l'image originale pour les rotations futures
-        self.angle = 0  # Angle initial de rotation
+        self.angle = angle  # Angle de rotation initial
+        self.rotate_with_angle(angle)  # Rotation de l'image en fonction de l'angle spécifié
+        self.direction = self.tank.rotation
+        tank_center = (self.tank.rect.x + self.tank.rect.width / 2, self.tank.rect.y + self.tank.rect.height / 2)
+        if self.direction == "haut" or self.direction == "bas":
+            self.rect = self.image.get_rect(center=self.tank.rect.center)
+        elif self.direction == "droite" or self.direction == "gauche":
+            self.rect = self.image.get_rect(center=(tank_center[0] + 10, tank_center[1] - 10))
+        else:
+            self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
 
     def update(self):
         self.rotate()  # Appel de la méthode pour faire tourner le tank
