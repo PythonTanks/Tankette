@@ -125,6 +125,11 @@ class Game:  # Définition de la classe Game
                 self.screen.blit(self.tanks[0][1].image, self.tanks[0][1].rect)
                 self.screen.blit(self.tanks[1][0].image, self.tanks[1][0].rect)
                 self.screen.blit(self.tanks[1][1].image, self.tanks[1][1].rect)
+                
+                for tank in self.tanks:
+                    for bullet in tank[0].all_projectiles:
+                        bullet.update()
+                    tank[0].all_projectiles.draw(self.screen)
             
             if self.in_main_menu:
                 self.mainmenuScreen()  # Affichage de l'écran du menu principal
@@ -143,17 +148,9 @@ class Game:  # Définition de la classe Game
             
             if self.in_game and len(self.tanks) > 1:
                 
-                for tank in self.tanks:
-                    for bullet in tank[0].all_projectiles:
-                        bullet.update()
-                    tank[0].all_projectiles.draw(self.screen)
-                
                 # Gestion des entrées utilisateur
                 self.tanks[0][0].handle_input()  # Gestion des contrôles du Tank
                 self.tanks[0][1].rotate()  # Rotation du TopTank
-                
-                # Préparation des données à envoyer au serveur
-                data = [self.tanks[0][0].get_position(), self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles]]
                 
                 # Gestion des messages reçus du serveur
                 if message == "Disconnected":
@@ -178,6 +175,8 @@ class Game:  # Définition de la classe Game
                         
                 # Envoi des données au serveur
                 if self.connected:
+                    # Préparation des données à envoyer au serveur
+                    data = [self.tanks[0][0].get_position(), self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles]]
                     send_message(data, self.client_socket)
 
             

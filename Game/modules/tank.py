@@ -20,12 +20,6 @@ class Tank(Movable):
 
     # Méthode pour lancer un projectile
     def launch_projectile(self, angle, start):
-        # Vérifie si le temps écoulé depuis le dernier tir est supérieur à 0.5 seconde
-        now = time.time()
-        if now - self.last_shot < 0.5:
-            return
-        # Met à jour le temps du dernier tir
-        self.last_shot = now
         # Ajoute un nouveau projectile au groupe de projectiles
         self.all_projectiles.add(Bullet(self.game, angle=angle, start=start))
 
@@ -95,8 +89,12 @@ class Tank(Movable):
                 
         # Si la touche 'espace' est pressée
         if keys[pygame.K_SPACE]:
-            # Appel de la méthode pour lancer un projectile
-            self.launch_projectile(self.game.toptank.get_angle(), self.game.toptank.get_position_bout_canon())
+            # Vérifie si le temps écoulé depuis le dernier tir est supérieur à 0.5 seconde
+            now = time.time()
+            if now - self.last_shot > 0.5:
+                # Appel de la méthode pour lancer un projectile
+                self.launch_projectile(self.game.tanks[0][1].get_angle(), self.game.tanks[0][1].get_position_bout_canon())
+                self.last_shot = now
         
         # Si la touche '0' du pavé numérique est pressée
         if keys[pygame.K_KP0]:
