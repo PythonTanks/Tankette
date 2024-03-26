@@ -5,7 +5,7 @@ from modules.bullet import Bullet  # Importe la classe Bullet du module bullet
 
 # Classe représentant un tank
 class Tank(Movable):
-    def __init__(self, game, image_path="assets/tank.png", initial_position=(0, 0), dimensions=(80, 100), velocity=10, rotation="haut"):
+    def __init__(self, game, image_path="assets/tank.png", initial_position=(0, 0), dimensions=(80, 100), velocity=5, rotation="haut"):
         # Appel du constructeur de la classe parente (Movable)
         super().__init__(game, image_path, initial_position, dimensions, velocity)
         # Référence à l'instance de la classe Game
@@ -17,11 +17,32 @@ class Tank(Movable):
         # Rotation initiale du tank
         self.rotation = rotation
         self.move(initial_position[0], initial_position[1], self.rotation)  # Déplacement initial du tank
+        
+        self.life = 100  # Points de vie du tank
 
     # Méthode pour lancer un projectile
     def launch_projectile(self, angle, start):
         # Ajoute un nouveau projectile au groupe de projectiles
         self.all_projectiles.add(Bullet(self.game, angle=angle, start=start))
+        
+    def life_bar(self):
+        # Dessine la barre de vie du tank
+        if self.rotation == "haut" or self.rotation == "bas":
+            pygame.draw.rect(self.game.screen, (0, 0, 0), [self.rect.x - 15, self.rect.y - 25, 110, 20])
+            if self.life <= 30:
+                pygame.draw.rect(self.game.screen, (255, 0, 0), [self.rect.x - 10, self.rect.y - 20, self.life, 10])
+            elif self.life <= 60:
+                pygame.draw.rect(self.game.screen, (255, 255, 0), [self.rect.x - 10, self.rect.y - 20, self.life, 10])
+            else:
+                pygame.draw.rect(self.game.screen, (0, 255, 0), [self.rect.x - 10, self.rect.y - 20, self.life, 10])
+        else:
+            pygame.draw.rect(self.game.screen, (0, 0, 0), [self.rect.x -3, self.rect.y - 25, 110, 20])
+            if self.life <= 30:
+                pygame.draw.rect(self.game.screen, (255, 0, 0), [self.rect.x + 2, self.rect.y - 20, self.life, 10])
+            elif self.life <= 60:
+                pygame.draw.rect(self.game.screen, (255, 255, 0), [self.rect.x + 2, self.rect.y - 20, self.life, 10])
+            else:
+                pygame.draw.rect(self.game.screen, (0, 255, 0), [self.rect.x + 2, self.rect.y - 20, self.life, 10])
 
     # Méthode pour gérer les entrées de l'utilisateur
     def handle_input(self):

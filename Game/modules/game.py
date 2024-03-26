@@ -121,10 +121,10 @@ class Game:  # Définition de la classe Game
             
             if self.in_game and len(self.tanks) > 1:
                 
-                self.screen.blit(self.tanks[0][0].image, self.tanks[0][0].rect)
-                self.screen.blit(self.tanks[0][1].image, self.tanks[0][1].rect)
-                self.screen.blit(self.tanks[1][0].image, self.tanks[1][0].rect)
-                self.screen.blit(self.tanks[1][1].image, self.tanks[1][1].rect)
+                for tank in self.tanks:
+                    self.screen.blit(tank[0].image, tank[0].rect)
+                    self.screen.blit(tank[1].image, tank[1].rect)
+                    tank[0].life_bar()
                 
                 for tank in self.tanks:
                     for bullet in tank[0].all_projectiles:
@@ -172,11 +172,13 @@ class Game:  # Définition de la classe Game
 
                     if self.debug:
                         print(f"[CLIENT] Message reçu: {message}")  # Affichage du message reçu du serveur
+                    self.tanks[1][0].life = min(message[4], self.tanks[1][0].life)  # Mise à jour des points de vie du tank ennemi
+                    self.tanks[0][0].life = min(message[5], self.tanks[0][0].life)  # Mise à jour des points de vie du tank local
                         
                 # Envoi des données au serveur
                 if self.connected:
                     # Préparation des données à envoyer au serveur
-                    data = [self.tanks[0][0].get_position(), self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles]]
+                    data = [self.tanks[0][0].get_position(), self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life]
                     send_message(data, self.client_socket)
 
             

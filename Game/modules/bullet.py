@@ -34,3 +34,9 @@ class Bullet(Movable):
         # Si la balle sort de l'écran, elle est supprimée
         if self.rect.x < -30 or self.rect.x > self.game.width or self.rect.y < -30 or self.rect.y > self.game.height:
             self.kill()  # Suppression de la balle si elle sort de l'écran
+            
+        # Si la balle touche un tank, elle est supprimée
+        for tank in self.game.tanks:
+            if self.rect.colliderect(tank[0].rect):
+                self.kill()  # Suppression de la balle si elle touche un tank
+                tank[0].life -= 10  # Réduction des points de vie du tank touché
