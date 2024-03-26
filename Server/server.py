@@ -24,7 +24,7 @@ SERVER_HOST = configContent["API_ADDRESS"] # Mettre l'adresse IP de la machine q
 #SERVER_HOST = '172.24.18.22'  # Mettre l'adresse IP de la machine qui héberge le serveur
 
 # Configuration des logs
-SERVER_LOG = False  # Active/désactive les logs du serveur
+SERVER_LOG = True  # Active/désactive les logs du serveur
 SERVER_LOG_FILE = False  # Active/désactive l'écriture des logs dans un fichier
 API_LOG_FILE = False  # Active/désactive l'écriture des logs de l'API dans un fichier
 
@@ -84,13 +84,15 @@ def MyServer(SERVER_PORT=5556):
 
         while not error:
             try:
-                data = pickle.loads(client_socket.recv(2**10))
+                data = pickle.loads(client_socket.recv(2**20))
                 if not data:
                     break
                 if SERVER_LOG:
-                    print(f"        # [SERVEUR | {SERVER_PORT}] Reçu de {client_address}: {data}")
+                    # print(f"        # [SERVEUR | {SERVER_PORT}] Reçu de {client_address}: {data}")
+                    ...
                 if SERVER_LOG_FILE:
-                    file.write(f"       # [SERVEUR | {SERVER_PORT}] Reçu de {client_address}: {data} [{datetime.datetime.now()}]\n")
+                    # file.write(f"       # [SERVEUR | {SERVER_PORT}] Reçu de {client_address}: {data} [{datetime.datetime.now()}]\n")
+                    ...
 
                 for c in clients:
                     if c != client_socket:

@@ -39,8 +39,6 @@ class Game:  # Définition de la classe Game
 
         self.status = "menu"  # Statut du jeu (menu, play, options, ingame)
         
-        self.num = 1  # Initialisation d'une variable numérique
-        
         self.connected = False  # Initialisation de la variable indiquant l'état de connexion au serveur
         self.client_socket = None  # Initialisation du socket client
         
@@ -106,7 +104,7 @@ class Game:  # Définition de la classe Game
             
             self.screen.blit(self.background, (0,0))  # Affichage de l'image de fond
             
-            if self.in_game:
+            if self.in_game and self.connected:
                 message = get_last_message()
             
             if self.in_game and len(self.tanks) == 1:
@@ -159,8 +157,9 @@ class Game:  # Définition de la classe Game
                     self.connected = False  # Mise à jour de l'état de connexion
                     self.in_main_menu = True  # Retour au menu principal
                     self.tanks = []  # Réinitialisation de la liste des tanks
+                    self.in_game = False  # Le jeu n'est plus en cours
 
-                if message and (message != "Connected") and type(message) == list:
+                elif message and type(message) == list:
                     # Mise à jour des informations des tanks ennemis
                     self.tanks[1][0].set_position(message[0])
                     self.tanks[1][0].spriteRotate(message[1])
@@ -203,12 +202,17 @@ class Game:  # Définition de la classe Game
         display_surface.blit(debug_surface, debug_rect)   # Affichage de la surface de texte
 
     def mainmenuScreen(self):
+        close_connection(self.client_socket)  # Fermeture de la connexion
+        self.connected = False  # Mise à jour de l'état de connexion
+        self.in_main_menu = True  # Retour au menu principal
         self.tanks = []  # Réinitialisation de la liste des tanks
-        self.in_game = False  # Le jeu n'est pas en cours
+        self.in_game = False  # Le jeu n'est plus en cours
+
         if self.client_socket:
             close_connection(self.client_socket)  # Fermeture de la connexion avec le serveur
             self.connected = False  # Mise à jour de l'état de connexion
             self.client_socket = None  # Réinitialisation du socket client
+            self.tanks = []  # Réinitialisation de la liste des tanks
         is_open = True
         while is_open:
             self.screen.fill((0, 0, 0))  # Remplissage de l'écran en noir
@@ -460,7 +464,6 @@ class Game:  # Définition de la classe Game
                             if response.status_code == 200:
                                 self.client_socket = connect_to_server(self.port, self.ip)
                                 self.connected = True
-                                self.num = 2
                                 is_open = False
                                 self.is_running = True
                                 self.status = "ingame"
@@ -496,7 +499,6 @@ class Game:  # Définition de la classe Game
                             if response.status_code == 200:
                                 self.client_socket = connect_to_server(self.port, self.ip)
                                 self.connected = True
-                                self.num = 1
                                 is_open = False
                                 self.is_running = True                                
                                 self.status = "ingame"

@@ -27,7 +27,7 @@ def receive_messages(client_socket):
     while True:
         try:
             # Réception des données du serveur
-            data = pickle.loads(client_socket.recv(2**10))  # Reçoit des données depuis le serveur et les décode à l'aide de pickle
+            data = pickle.loads(client_socket.recv(2**20))  # Reçoit des données depuis le serveur et les décode à l'aide de pickle
             if debug:
                 print("[CLIENT] Reçu du serveur:", data)
             last_message = data  # Stocke le dernier message reçu dans la variable last_message
@@ -50,6 +50,10 @@ def get_last_message():
     return last_message  # Retourne le dernier message reçu par le client
 
 # Fonction pour fermer la connexion avec le serveur
-def close_connection(client_socket):
+def close_connection(client_socket : socket.socket):
     if(client_socket is not None):
-        client_socket.close()  # Ferme la connexion avec le serveur
+        try:
+            client_socket.shutdown(socket.SHUT_RDWR)  # Ferme la connexion en lecture et en écriture
+        except:
+            pass
+        client_socket.close()  # Ferme le socket client
