@@ -33,7 +33,7 @@ class GameObject(pygame.sprite.Sprite):
         # Obtention du rectangle englobant l'image (utilisé pour le positionnement et la détection des collisions)
         self.rect = self.image.get_rect()
         # Positionnement du rectangle à la position initiale spécifiée
-        self.rect.topleft = initial_position
+        self.rect.center = initial_position
         
     # Méthode pour obtenir la position actuelle de l'objet
     def get_position(self):
@@ -41,8 +41,11 @@ class GameObject(pygame.sprite.Sprite):
 
     # Méthode pour définir la position de l'objet
     def set_position(self, position):
-        self.rect.x = position[0]
-        self.rect.y = position[1]
+        if position[0] < 0 or position[0] > self.game.width or position[1] < 0 or position[1] > self.game.height:
+            self.rect.x = position[0]
+            self.rect.y = position[1]
+        #else:
+            #raise ValueError("La position spécifiée est en dehors des limites de l'écran.")
 
     # Méthode pour obtenir la hitbox (rectangle englobant) de l'objet
     def get_hitbox(self):

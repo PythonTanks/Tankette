@@ -27,7 +27,7 @@ def receive_messages(client_socket):
     while True:
         try:
             # Réception des données du serveur
-            data = pickle.loads(client_socket.recv(2**20))  # Reçoit des données depuis le serveur et les décode à l'aide de pickle
+            data = pickle.loads(client_socket.recv(2**10))  # Reçoit des données depuis le serveur et les décode à l'aide de pickle
             if debug:
                 print("[CLIENT] Reçu du serveur:", data)
             last_message = data  # Stocke le dernier message reçu dans la variable last_message

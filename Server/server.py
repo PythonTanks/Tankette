@@ -84,7 +84,7 @@ def MyServer(SERVER_PORT=5556):
 
         while not error:
             try:
-                data = pickle.loads(client_socket.recv(2**20))
+                data = pickle.loads(client_socket.recv(2**10))
                 if not data:
                     break
                 if SERVER_LOG:
@@ -102,6 +102,16 @@ def MyServer(SERVER_PORT=5556):
                             continue
             except ValueError:
                 clients.remove(client_socket)
+                server_socket.close()
+                return None        
+            except EOFError:
+                clients.remove(client_socket)
+                for c in clients:
+                    if c != client_socket:
+                        try:
+                            c.send(pickle.dumps("Disconnected"))
+                        except Exception as e:
+                            continue
                 server_socket.close()
                 return None
             except Exception as e:
@@ -125,7 +135,7 @@ def MyServer(SERVER_PORT=5556):
 
     while True:
         try:
-            if len(clients) != 2:
+            if len(clients) < 3:
                 client_socket, client_address = server_socket.accept()
                 clients.append(client_socket)
                 client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address))

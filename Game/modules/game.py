@@ -112,6 +112,15 @@ class Game:  # Définition de la classe Game
             
             if self.in_game and self.connected:
                 message = get_last_message()
+                
+                # Gestion des messages reçus du serveur
+                if message == "Disconnected":
+                    print("[CLIENT] Déconnexion du serveur.")
+                    close_connection(self.client_socket)  # Fermeture de la connexion
+                    self.connected = False  # Mise à jour de l'état de connexion
+                    self.in_main_menu = True  # Retour au menu principal
+                    self.tanks = []  # Réinitialisation de la liste des tanks
+                    self.in_game = False  # Le jeu n'est plus en cours
             
             if self.in_game and len(self.tanks) == 1:
                 
@@ -121,6 +130,7 @@ class Game:  # Définition de la classe Game
                 self.screen.blit(self.tanks[0][1].image, self.tanks[0][1].rect)  # Affichage du TopTank
                 
                 if message == "Connected":
+                    print("[CLIENT] Un adversaire s'est connecté.")
                     self.tanks.append(self.createEnemyTank())
             
             if self.in_game and len(self.tanks) > 1:
@@ -134,6 +144,8 @@ class Game:  # Définition de la classe Game
                     for bullet in tank[0].all_projectiles:
                         bullet.update()
                     tank[0].all_projectiles.draw(self.screen)
+                
+                pygame.display.update()  # Mise à jour de l'affichage
             
             if self.in_main_menu:
                 self.mainmenuScreen()  # Affichage de l'écran du menu principal
@@ -158,36 +170,29 @@ class Game:  # Définition de la classe Game
                 # Gestion des entrées utilisateur
                 self.tanks[0][0].handle_input()  # Gestion des contrôles du Tank
                 self.tanks[0][1].rotate()  # Rotation du TopTank
-                
-                # Gestion des messages reçus du serveur
-                if message == "Disconnected":
-                    print("[CLIENT] Déconnexion du serveur.")
-                    close_connection(self.client_socket)  # Fermeture de la connexion
-                    self.connected = False  # Mise à jour de l'état de connexion
-                    self.in_main_menu = True  # Retour au menu principal
-                    self.tanks = []  # Réinitialisation de la liste des tanks
-                    self.in_game = False  # Le jeu n'est plus en cours
 
-                elif message and type(message) == list:
+                if message and type(message) == list:
                     # Mise à jour des informations des tanks ennemis
-                    self.tanks[1][0].set_position(message[0])
+                    self.tanks[1][0].rect.x = message[0][0]
+                    self.tanks[1][0].rect.y = message[0][1]
                     self.tanks[1][0].spriteRotate(message[1])
                     self.tanks[1][0].rotation = message[1]
                     self.tanks[1][1].rotate_with_angle(message[2])
                     self.tanks[1][0].all_projectiles.empty()  # Effacement des projectiles existants
                     for projectile in message[3]:  # Création des nouveaux projectiles
                         self.tanks[1][0].all_projectiles.add(Bullet(self, angle=projectile["angle"], start=projectile["position"]))
+                    self.tanks[1][0].life = min(message[4], self.tanks[1][0].life)  # Mise à jour des points de vie du tank ennemi
+                    self.tanks[0][0].life = min(message[5], self.tanks[0][0].life)   # Mise à jour des points de vie du tank ennemi
 
                     if self.debug:
                         print(f"[CLIENT] Message reçu: {message}")  # Affichage du message reçu du serveur
-                    self.tanks[1][0].life = min(message[4], self.tanks[1][0].life)  # Mise à jour des points de vie du tank ennemi
-                    self.tanks[0][0].life = min(message[5], self.tanks[0][0].life)  # Mise à jour des points de vie du tank local
                         
                 # Envoi des données au serveur
                 if self.connected:
                     # Préparation des données à envoyer au serveur
-                    data = [self.tanks[0][0].get_position(), self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life]
-                    send_message(data, self.client_socket)
+                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life]
+                    if data != None:
+                        send_message(data, self.client_socket)
 
             
             # Gestion des événements
@@ -476,7 +481,7 @@ class Game:  # Définition de la classe Game
                                 is_open = False
                                 self.is_running = True
                                 self.status = "ingame"
-                                self.tanks = [self.createMyTank(position = (self.width - 200, self.height - 200), direction="gauche", angle=135.), self.createEnemyTank(position=(100, 100), direction="droite", angle=0)]
+                                self.tanks = [self.createMyTank(position = ((self.width - 200) / 2, (self.height - 200) / 2), direction="gauche", angle=135.), self.createEnemyTank(position=(100, 100), direction="droite", angle=0)]
                                 self.in_game = True
                                 error1 = False
                                 error2 = False
@@ -511,7 +516,7 @@ class Game:  # Définition de la classe Game
                                 is_open = False
                                 self.is_running = True                                
                                 self.status = "ingame"
-                                self.tanks = [self.createMyTank(), self.createEnemyTank()]
+                                self.tanks = [self.createMyTank()]
                                 self.in_game = True
                                 error1 = False
                                 error2 = False
@@ -553,6 +558,6 @@ class Game:  # Définition de la classe Game
     
     def createEnemyTank(self, position=(-1, -1), direction="droite", angle=135.):
         if position == (-1, -1):
-            position = (self.width - 200, self.height - 200)
+            position = ((self.width - 200) / 2, (self.height - 200) / 2)
         tank = Tank(self, initial_position=position, rotation=direction, image_path="assets/tank2.png")
         return (tank, TopTank(self, tank, angle=angle, image_path="assets/toptank2.png"))
