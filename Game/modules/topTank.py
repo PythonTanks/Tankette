@@ -63,9 +63,9 @@ class TopTank(pygame.sprite.Sprite):
         if self.direction == "haut" or self.direction == "bas":
             self.rect = self.image.get_rect(center=self.tank.rect.center)
         elif self.direction == "droite" or self.direction == "gauche":
-            self.rect = self.image.get_rect(center=(tank_center[0] + 10, tank_center[1] - 10))
+            self.rect = self.image.get_rect(center=tank_center)
         else:
-            self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
+            self.rect = self.image.get_rect(center=tank_center)
         self.angle = angle
 
     # Méthode pour mettre à jour la position du dessus du tank

@@ -1,10 +1,12 @@
-import pygame
-from modules.gameObject import GameObject  # Importe la classe GameObject du module gameObject
+try:
+    from modules.gameObject import GameObject  # Importe la classe GameObject du module gameObject
+except ModuleNotFoundError:
+    from gameObject import GameObject
 
 def gen(name : str):
     myMap = open(f"../maps/{name}.txt", "a")
-    for lines in range(10):
-        myMap.write("-"*19+"\n")
+    for lines in range(22):
+        myMap.write("-"*38+"\n")
     myMap.close()
     return None
 
@@ -14,7 +16,7 @@ def getWalls(game, nameFile : str, image):
     for i, lines in enumerate(myMap.readlines()):
         for j, value in enumerate(lines):
             if value=="|":
-                wall = GameObject(game, image_path=image, initial_position=(j*100/1080*game.height, i*100/1920*game.width), dimensions=(100/game.height, 100/game.width), custom_rotate=0, need_rotate=False)
+                wall = GameObject(game, image_path=image, initial_position=(j*50/1080*game.height, i*50/1920*game.width), dimensions=(50/game.height, 50/game.width), custom_rotate=0, need_rotate=False)
                 myWalls.append(wall)
     return myWalls
 

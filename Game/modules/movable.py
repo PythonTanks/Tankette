@@ -1,4 +1,12 @@
+import pygame
+import math
 from modules.gameObject import GameObject  # Importe la classe GameObject du module gameObject
+
+def Sqr(a):
+    return a*a
+
+def Distance(x1,y1,x2,y2):
+    return math.sqrt(Sqr(y2-y1)+Sqr(x2-x1))
 
 # Classe représentant un objet mobile, héritant de GameObject
 class Movable(GameObject):
@@ -10,31 +18,154 @@ class Movable(GameObject):
         self.velocity = velocity
         # Chemin de l'image de l'objet mobile
         self.image_pathmovable = image_path
-        
-    # Méthode pour gérer les collisions avec les bords de l'écran
-    def collision(self):
-        # Vérifie si l'objet est en collision avec un mur
-        if self.rect.x < 0 or self.rect.x > self.game.width - self.rect.width or self.rect.y < 0 or self.rect.y > self.game.height - self.rect.height:
-            return (True, "limite", None)
-        if len(self.game.tanks) > 0:
-            if len(self.game.tanks) > 1:
-                if self.rect.colliderect(self.game.tanks[1][0].rect):
-                    return (True, "tank", self.game.tanks[1][0])
-            if "bullet" in self.image_pathmovable:
-                if self.rect.colliderect(self.game.tanks[0][0].rect):
-                    return (True, "tank", self.game.tanks[0][0])
-        wall = self.rect.collidelist(self.game.walls)
-        if wall != -1:
-            return (True, "wall", self.game.walls[wall])
-        return (False, None, None)
+
 
     # Méthode pour déplacer l'objet
     def move(self, dx, dy, rotate):
-        # Modification de la position de l'objet en fonction des déplacements dx et dy, tout en gérant les collisions
-        self.rect.x += dx
-        self.rect.y += dy
-        if self.collision()[0] and not ("bullet" in self.image_pathmovable):  # Vérifie s'il y a une collision avec un mur ou si l'objet est un projectile
-            self.rect.x -= dx
-            self.rect.y -= dy
-        if not "bullet" in self.image_pathmovable:
-            self.spriteRotate(rotate)  # Appel de la méthode pour orienter l'image de l'objet en fonction de sa direction
+        if 'bullet' in self.image_pathmovable:
+            # On vérifie si le futur déplacement est valide
+            if not self.collisionsBullet():
+                # Si on obtient False, on déplace l'objet
+                self.rect.x += self.dx
+                self.rect.y += self.dy
+        else:
+            # On vérifie si le futur déplacement est valide
+            if not self.collisionsTank(dx, dy):
+                # Si on obtient False, on déplace l'objet
+                self.rect.x += dx
+                self.rect.y += dy
+                # On met à jour l'image de l'objet
+                self.spriteRotate(rotate)
+        
+            
+            
+    def collisionsTank(self, dx, dy):
+        # On prend la futur position du tank
+        fx = self.rect.x + dx
+        fy = self.rect.y + dy
+        # On crée un rectangle à la position du tank
+        future_rect = pygame.Rect(fx, fy, max(self.rect.width, self.rect.height), max(self.rect.width, self.rect.height))
+        # On vérifie si le tank touche un autre tank
+        for tank in self.game.tanks:
+            if tank[0] != self and future_rect.colliderect(tank[0].rect):
+                # On retourne True pour indiquer qu'il y a eu une collision
+                return True
+        # On vérifie si le tank touche les bords de l'écran
+        if self.rect.x < 0 or self.rect.x > self.game.width - self.rect.width or self.rect.y < 0 or self.rect.y > self.game.height - self.rect.height:
+            # On retourne True pour indiquer qu'il y a eu une collision
+            return True
+        # On vérifie si le tank touche un mur
+        for wall in self.game.walls:
+            if future_rect.colliderect(wall.rect):
+                # On retourne True pour indiquer qu'il y a eu une collision
+                return True
+        # On retourne False pour indiquer qu'il n'y a pas eu de collision car le tank à passer tous les tests
+        return False
+    
+    
+    def collisionsBullet(self):
+        # On prend la futur position de la balle
+        fx = self.rect.x + self.dx
+        fy = self.rect.y + self.dy
+        # On crée un rectangle à la position de la balle
+        future_rect = pygame.Rect(fx, fy, self.rect.width, self.rect.height)
+        # On vérifie si la balle touche un tank
+        for tank in self.game.tanks:
+            if future_rect.colliderect(tank[0].rect):
+                # On supprime la balle
+                self.kill()
+                # On retire des points de vie au tank
+                tank[0].life -= 10
+                # On retourne True pour indiquer qu'il y a eu une collision
+                return True
+        # On vérifie si la balle touche un bord de l'écran
+        if self.rect.x < 0 or self.rect.x > self.game.width - self.rect.width or self.rect.y < 0 or self.rect.y > self.game.height - self.rect.height:
+            # On regarde son compteur de rebond
+            if self.rebond == self.max_bounce:
+                # Si il est égal à 3, on supprime la balle
+                self.kill()
+            else:
+                # Sinon, on l'incrémente
+                self.rebond += 1
+                # On regarde précisément quel bord de l'écran la balle a touché
+                if self.rect.x < 0 or self.rect.x > self.game.width - self.rect.width:
+                    # Si elle touche la gauche ou la droite, on inverse la composante horizontale du déplacement, on met à jour l'angle et on fait tourner l'image
+                    self.dx = -self.dx
+                    self.cos_angle = -self.cos_angle
+                    self.angle = math.degrees(math.atan2(self.sin_angle, self.cos_angle))
+                    self.newAngle(self.angle)
+                    self.spriteRotate(self.angle) 
+                    # On retourne False pour indiquer que le mouvement est maintenant valide
+                    return False
+                if self.rect.y < 0 or self.rect.y > self.game.height - self.rect.height:
+                    # Si elle touche le haut ou le bas, on inverse la composante verticale du déplacement, on met à jour l'angle et on fait tourner l'image
+                    self.dy = -self.dy
+                    self.sin_angle = -self.sin_angle
+                    self.angle = math.degrees(math.atan2(self.sin_angle, self.cos_angle))
+                    self.newAngle(self.angle)
+                    self.spriteRotate(self.angle)
+                    # On retourne False pour indiquer que le mouvement est maintenant valide
+                    return False
+        # On vérifie si la balle touche un mur
+        bout = self.get_position_bout_bullet()
+        for wall in self.game.walls:
+            if wall.rect.collidepoint(bout) or future_rect.colliderect(wall.rect):
+                # On regarde son compteur de rebond
+                if self.rebond == self.max_bounce:
+                    # Si il est égal à 3, on supprime la balle
+                    self.kill()
+                else:
+                    # Sinon, on l'incrémente
+                    self.rebond += 1
+                    # On regarde précisément quel côté du mur la balle a touché
+                    rect_wall = wall.rect
+                    min = 0
+                    # On calcule la distance entre le bout de la balle et chaque point centré des côtés du mur
+                    dist = Distance(bout[0], bout[1], rect_wall.midleft[0], rect_wall.midleft[1])
+                    if dist < min or min == 0:
+                        min = dist
+                        side = "left"
+                    dist = Distance(bout[0], bout[1], rect_wall.midright[0], rect_wall.midright[1])
+                    if dist < min or min == 0:
+                        min = dist
+                        side = "right"
+                    dist = Distance(bout[0], bout[1], rect_wall.midtop[0], rect_wall.midtop[1])
+                    if dist < min or min == 0:
+                        min = dist
+                        side = "top"
+                    dist = Distance(bout[0], bout[1], rect_wall.midbottom[0], rect_wall.midbottom[1])
+                    if dist < min or min == 0:
+                        min = dist
+                        side = "bottom"
+                    # On inverse la composante horizontale du déplacement si la balle touche le côté gauche du mur
+                    if side == "left":
+                        self.dx = -self.dx
+                        self.cos_angle = -self.cos_angle
+                        self.angle = math.degrees(math.atan2(self.sin_angle, self.cos_angle))
+                        self.newAngle(self.angle)
+                        self.spriteRotate(self.angle)
+                    # On inverse la composante horizontale du déplacement si la balle touche le côté droit du mur
+                    if side == "right":
+                        self.dx = -self.dx
+                        self.cos_angle = -self.cos_angle
+                        self.angle = math.degrees(math.atan2(self.sin_angle, self.cos_angle))
+                        self.newAngle(self.angle)
+                        self.spriteRotate(self.angle)
+                    # On inverse la composante verticale du déplacement si la balle touche le côté haut du mur
+                    if side == "top":
+                        self.dy = -self.dy
+                        self.sin_angle = -self.sin_angle
+                        self.angle = math.degrees(math.atan2(self.sin_angle, self.cos_angle))
+                        self.newAngle(self.angle)
+                        self.spriteRotate(self.angle)
+                    # On inverse la composante verticale du déplacement si la balle touche le côté bas du mur
+                    if side == "bottom":
+                        self.dy = -self.dy
+                        self.sin_angle = -self.sin_angle
+                        self.angle = math.degrees(math.atan2(self.sin_angle, self.cos_angle))
+                        self.newAngle(self.angle)
+                        self.spriteRotate(self.angle)
+                    # On retourne False pour indiquer que le mouvement est maintenant valide
+                    return False
+        # On retourne False pour indiquer qu'il n'y a pas eu de collision car la balle à passer tous les tests
+        return False
