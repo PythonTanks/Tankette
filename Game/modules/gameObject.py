@@ -9,7 +9,7 @@ class GameObject(pygame.sprite.Sprite):
             
         # Chargement de l'image à partir du chemin spécifié et redimensionnement aux dimensions spécifiées
         self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, dimensions)
+        self.image = pygame.transform.scale(self.image, [dimensions[0]*self.game.height, dimensions[1]*self.game.width])
         
         # Ajout d'une bordure rouge autour de l'image si le mode debug est activé
         if game.debug:

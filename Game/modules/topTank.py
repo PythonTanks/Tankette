@@ -8,8 +8,8 @@ class TopTank(pygame.sprite.Sprite):
         self.game = game  # Référence à l'instance de la classe Game
         self.tank = tank  # Référence à l'instance de la classe Tank associée
         self.image = pygame.image.load(image_path)  # Chargement de l'image à partir du chemin spécifié
-        self.image = pygame.transform.scale(self.image, (150, 150))  # Redimensionnement de l'image aux dimensions spécifiées
-        dimensions = (150, 150)
+        dimensions = ((175/1080)*self.game.height, (175/1920)*self.game.width)
+        self.image = pygame.transform.scale(self.image, dimensions)  # Redimensionnement de l'image aux dimensions spécifiées
         if game.debug:
             # Ajout d'une bordure rouge autour de l'image pour le mode débogage
             self.image.fill((255, 0, 0), rect=[0, 0, dimensions[0], 5])
@@ -26,7 +26,7 @@ class TopTank(pygame.sprite.Sprite):
         if self.direction == "haut" or self.direction == "bas":
             self.rect = self.image.get_rect(center=self.tank.rect.center)
         elif self.direction == "droite" or self.direction == "gauche":
-            self.rect = self.image.get_rect(center=(tank_center[0] + 10, tank_center[1] - 10))
+            self.rect = self.image.get_rect(center=(tank_center[0] + 9, tank_center[1] - 8))
         else:
             self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
 

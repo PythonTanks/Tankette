@@ -5,7 +5,7 @@ from modules.bullet import Bullet  # Importe la classe Bullet du module bullet
 
 # Classe représentant un tank
 class Tank(Movable):
-    def __init__(self, game, image_path="assets/tank.png", initial_position=(0, 0), dimensions=(80, 100), velocity=5, rotation="haut"):
+    def __init__(self, game, image_path="assets/tank.png", initial_position=(0, 0), dimensions=(80/1080, 100/1920), velocity=5, rotation="haut"):
         # Appel du constructeur de la classe parente (Movable)
         super().__init__(game, image_path, initial_position, dimensions, velocity)
         # Référence à l'instance de la classe Game

@@ -4,7 +4,7 @@ from modules.movable import Movable  # Importation de la classe parente Movable
 class Bullet(Movable):
     def __init__(self, game, velocity=20, angle=0, start=(0, 0)):
         # Appel du constructeur de la classe parente (Movable)
-        super().__init__(game, "assets/bullet.png", start, (10, 30), velocity, 270-angle)
+        super().__init__(game, "assets/bullet.png", start, (10/1080, 30/1920), velocity, 270-angle)
         
         # Angle de déplacement de la balle
         self.angle = angle
