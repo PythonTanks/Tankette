@@ -9,6 +9,7 @@ from modules.tank import Tank  # Importation de la classe Tank depuis le fichier
 from modules.topTank import TopTank  # Importation de la classe TopTank depuis le fichier modules/topTank.py
 from modules.network import connect_to_server, send_message, get_last_message, close_connection  # Importation de certaines fonctions depuis le fichier modules/network.py
 from modules.bullet import Bullet  # Importation de la classe Bullet depuis le fichier modules/bullet.py
+from modules.map import getWalls
 
 configFile = open("../config.yaml", "r")
 configContent = yaml.load(configFile, Loader=yaml.Loader) # Charge le contenu du fichier de configuration
@@ -98,11 +99,18 @@ class Game:  # Définition de la classe Game
         self.setFonts()  # Initialisation des polices de caractères
 
         message = None  # Initialisation de la variable message (évite les erreurs de type NoneType)
+
+        self.walls = getWalls(self, "map1", "assets/walls/wall1.png")
+
+        print(1)
         
         # Boucle principale du jeu
         while self.is_running:
             
             self.screen.blit(self.background, (0,0))  # Affichage de l'image de fond
+
+            for wall in self.walls:
+                self.screen.blit(wall.image, wall.rect)
             
             if self.in_game and self.connected:
                 message = get_last_message()

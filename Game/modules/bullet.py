@@ -17,6 +17,8 @@ class Bullet(Movable):
         self.velocity = velocity
         # Référence à l'instance de la classe Game
         self.game = game
+
+        self.rebond = 0
         
         # Calcul des composantes dx et dy du déplacement de la balle
         self.dx = math.cos(math.radians(self.angle)) * self.velocity  # Calcul de la composante horizontale
@@ -32,8 +34,14 @@ class Bullet(Movable):
             self.move(self.dx, self.dy, self.image_custom)  # Déplacement de la balle
             
         # Si la balle sort de l'écran, elle est supprimée
-        if self.rect.x < -30 or self.rect.x > self.game.width or self.rect.y < -30 or self.rect.y > self.game.height:
-            self.kill()  # Suppression de la balle si elle sort de l'écran
+        myWall = self.collision()
+        if myWall != -1:
+            if self.rebond == 2:
+                self.kill()  # Suppression de la balle si elle sort de l'écran
+            else:
+                self.rebond += 1
+                
+                
             
         # Si la balle touche un tank, elle est supprimée
         for tank in self.game.tanks:

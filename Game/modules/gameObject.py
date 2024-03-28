@@ -3,7 +3,7 @@ import pygame  # Importe le module pygame
 # Classe représentant un objet de jeu, héritant de pygame.sprite.Sprite
 class GameObject(pygame.sprite.Sprite):
     # Le constructeur de la classe GameObject
-    def __init__(self, game, image_path, initial_position=(0, 0), dimensions=(100, 100), custom_rotate=0):
+    def __init__(self, game, image_path, initial_position=(0, 0), dimensions=(100, 100), custom_rotate=0, need_rotate=True):
         super().__init__()  # Appel du constructeur de la classe parente (pygame.sprite.Sprite)
         self.game = game  # Référence à l'instance de la classe Game
             
@@ -19,15 +19,16 @@ class GameObject(pygame.sprite.Sprite):
             self.image.fill((255, 0, 0), rect=[dimensions[0]-5, 0, 5, dimensions[1]])
             
         # Création de différentes versions de l'image, chacune tournée dans une direction différente
-        self.image_right = pygame.transform.rotate(self.image, -90)
-        self.image_left = pygame.transform.rotate(self.image, 90)
-        self.image_up = pygame.transform.rotate(self.image, 0)
-        self.image_down = pygame.transform.rotate(self.image, 180)
-        self.image_custom = pygame.transform.rotate(self.image, custom_rotate)
-        self.image_up_left = pygame.transform.rotate(self.image, 45)
-        self.image_up_right = pygame.transform.rotate(self.image, -45)
-        self.image_down_left = pygame.transform.rotate(self.image, 135)
-        self.image_down_right = pygame.transform.rotate(self.image, -135)
+        if need_rotate:
+            self.image_right = pygame.transform.rotate(self.image, -90)
+            self.image_left = pygame.transform.rotate(self.image, 90)
+            self.image_up = pygame.transform.rotate(self.image, 0)
+            self.image_down = pygame.transform.rotate(self.image, 180)
+            self.image_custom = pygame.transform.rotate(self.image, custom_rotate)
+            self.image_up_left = pygame.transform.rotate(self.image, 45)
+            self.image_up_right = pygame.transform.rotate(self.image, -45)
+            self.image_down_left = pygame.transform.rotate(self.image, 135)
+            self.image_down_right = pygame.transform.rotate(self.image, -135)
         
         # Obtention du rectangle englobant l'image (utilisé pour le positionnement et la détection des collisions)
         self.rect = self.image.get_rect()

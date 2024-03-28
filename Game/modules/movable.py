@@ -12,16 +12,22 @@ class Movable(GameObject):
         self.image_pathmovable = image_path
         
     # Méthode pour gérer les collisions avec les bords de l'écran
-    def collision(self, dx, dy):
+    def collision(self):
         # Vérifie si l'objet est en collision avec un mur
-        if self.rect.x + dx < 0 or self.rect.x + dx > self.game.width - self.rect.width or self.rect.y + dy < 0 or self.rect.y + dy > self.game.height - self.rect.height:
-            return True
-        return False
+        if self.rect.x < 0 or self.rect.x > self.game.width - self.rect.width or self.rect.y < 0 or self.rect.y > self.game.height - self.rect.height:
+            return (True, "tank")
+        wall = self.rect.collidelist(self.game.walls)
+        print(wall)
+        if wall != -1:
+            return (True, wall)
+        return (False, None)
 
     # Méthode pour déplacer l'objet
     def move(self, dx, dy, rotate):
         # Modification de la position de l'objet en fonction des déplacements dx et dy, tout en gérant les collisions
-        if not self.collision(dx, dy) or ("bullet" in self.image_pathmovable):  # Vérifie s'il y a une collision avec un mur ou si l'objet est un projectile
-            self.rect.x += dx
-            self.rect.y += dy
+        self.rect.x += dx
+        self.rect.y += dy
+        if self.collision()[0] and not ("bullet" in self.image_pathmovable):  # Vérifie s'il y a une collision avec un mur ou si l'objet est un projectile
+            self.rect.x -= dx
+            self.rect.y -= dy
         self.spriteRotate(rotate)  # Appel de la méthode pour orienter l'image de l'objet en fonction de sa direction
