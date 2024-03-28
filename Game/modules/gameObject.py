@@ -3,25 +3,20 @@ import pygame  # Importe le module pygame
 # Classe représentant un objet de jeu, héritant de pygame.sprite.Sprite
 class GameObject(pygame.sprite.Sprite):
     # Le constructeur de la classe GameObject
-    def __init__(self, game, image_path, initial_position=(0, 0), dimensions=(100, 100), custom_rotate=0, need_rotate=True, wall=False):
+    def __init__(self, game, image_path, initial_position=(0, 0), dimensions=(100, 100), custom_rotate=0, need_rotate=True):
         super().__init__()  # Appel du constructeur de la classe parente (pygame.sprite.Sprite)
         self.game = game  # Référence à l'instance de la classe Game
             
         # Chargement de l'image à partir du chemin spécifié et redimensionnement aux dimensions spécifiées
         self.image = pygame.image.load(image_path)
-        if wall:
-            self.image = pygame.transform.scale(self.image, [100, 100])
-        else:
-            self.image = pygame.transform.scale(self.image, [dimensions[0]*self.game.height, dimensions[1]*self.game.width])
+        self.image = pygame.transform.scale(self.image, [dimensions[0]*self.game.height, dimensions[1]*self.game.width])
         
         self.image_start = self.image
         
-        # Ajout d'une bordure rouge autour de l'image si le mode debug est activé
+        # Ajout d'une bordure rouge autour de l'image si le mode debug est activé en utilisant le rect de l'image
         if game.debug:
-            self.image.fill((255, 0, 0), rect=[0, 0, dimensions[0], 5])
-            self.image.fill((255, 0, 0), rect=[0, 0, 5, dimensions[1]])
-            self.image.fill((255, 0, 0), rect=[0, dimensions[1]-5, dimensions[0], 5])
-            self.image.fill((255, 0, 0), rect=[dimensions[0]-5, 0, 5, dimensions[1]])
+            rect = self.image.get_rect()
+            pygame.draw.rect(self.image, (255, 0, 0), rect, 5)
             
         # Création de différentes versions de l'image, chacune tournée dans une direction différente
         if need_rotate:
@@ -59,6 +54,7 @@ class GameObject(pygame.sprite.Sprite):
     
         # Méthode pour faire tourner l'image de l'objet
     def spriteRotate(self, rotate):
+        rectCenter = self.rect.center
         if rotate == "droite":
             self.image = self.image_right
         elif rotate == "gauche":
@@ -77,6 +73,7 @@ class GameObject(pygame.sprite.Sprite):
             self.image = self.image_down_left
         else:
             self.image = self.image_custom
+        self.rect = self.image.get_rect(center=rectCenter)
     
     def newAngle(self, angle):
         self.image_custom = pygame.transform.rotate(self.image_start, 270 - angle)

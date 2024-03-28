@@ -29,22 +29,24 @@ class Tank(Movable):
         
     def life_bar(self):
         # Dessine la barre de vie du tank
+        myrect = pygame.Rect(0, 0, 110, 20)
+        myrect.center = self.rect.center
+        myrect.y = self.rect.y - 25
+        pygame.draw.rect(self.game.screen, (0, 0, 0), myrect)
         if self.rotation == "haut" or self.rotation == "bas":
-            pygame.draw.rect(self.game.screen, (0, 0, 0), [self.rect.x - 13 + ((self.dimensions[1] - 110) /12), self.rect.y - 25, 110, 20])
             if self.life <= 30:
-                pygame.draw.rect(self.game.screen, (255, 0, 0), [self.rect.x - 8 + ((self.dimensions[1] - 110) /12), self.rect.y - 20, self.life, 10])
+                pygame.draw.rect(self.game.screen, (255, 0, 0), [myrect.left+5, myrect.top+5, self.life, 10])
             elif self.life <= 60:
-                pygame.draw.rect(self.game.screen, (255, 255, 0), [self.rect.x - 8 + ((self.dimensions[1] - 110) /12), self.rect.y - 20, self.life, 10])
+                pygame.draw.rect(self.game.screen, (255, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
             else:
-                pygame.draw.rect(self.game.screen, (0, 255, 0), [self.rect.x - 8 + ((self.dimensions[1] - 110) /12), self.rect.y - 20, self.life, 10])
+                pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
         else:
-            pygame.draw.rect(self.game.screen, (0, 0, 0), [self.rect.x - 5 + ((self.dimensions[1] - 110) /12), self.rect.y - 25, 110, 20])
             if self.life <= 30:
-                pygame.draw.rect(self.game.screen, (255, 0, 0), [self.rect.x + ((self.dimensions[0] - 110) /12), self.rect.y - 20, self.life, 10])
+                pygame.draw.rect(self.game.screen, (255, 0, 0), [myrect.left+5, myrect.top+5, self.life, 10])
             elif self.life <= 60:
-                pygame.draw.rect(self.game.screen, (255, 255, 0), [self.rect.x + ((self.dimensions[0] - 110) /12), self.rect.y - 20, self.life, 10])
+                pygame.draw.rect(self.game.screen, (255, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
             else:
-                pygame.draw.rect(self.game.screen, (0, 255, 0), [self.rect.x + ((self.dimensions[0] - 110) /12), self.rect.y - 20, self.life, 10])
+                pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
 
     # Méthode pour gérer les entrées de l'utilisateur
     def handle_input(self):
