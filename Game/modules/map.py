@@ -14,7 +14,7 @@ def getWalls(game, nameFile : str, image):
     for i, lines in enumerate(myMap.readlines()):
         for j, value in enumerate(lines):
             if value=="|":
-                wall = GameObject(game, image_path=image, initial_position=(j*100/1080*game.height, i*100/1920*game.width), dimensions=(100/1080, 100/1920), custom_rotate=0, need_rotate=False)
+                wall = GameObject(game, image_path=image, initial_position=(j*100/1080*game.height, i*100/1920*game.width), dimensions=(100/game.height, 100/game.width), custom_rotate=0, need_rotate=False, wall=True)
                 myWalls.append(wall)
     return myWalls
 

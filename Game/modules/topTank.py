@@ -26,9 +26,9 @@ class TopTank(pygame.sprite.Sprite):
         if self.direction == "haut" or self.direction == "bas":
             self.rect = self.image.get_rect(center=self.tank.rect.center)
         elif self.direction == "droite" or self.direction == "gauche":
-            self.rect = self.image.get_rect(center=(tank_center[0] + 9, tank_center[1] - 8))
+            self.rect = self.image.get_rect(center=(tank_center[0] + 13, tank_center[1] - 13))
         else:
-            self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
+            self.rect = self.image.get_rect(center=(tank_center[0], tank_center[1]))
 
     def update(self):
         self.rotate()  # Appel de la méthode pour faire tourner le tank
@@ -49,7 +49,7 @@ class TopTank(pygame.sprite.Sprite):
         if self.direction == "haut" or self.direction == "bas":
             self.rect = self.image.get_rect(center=self.tank.rect.center)
         elif self.direction == "droite" or self.direction == "gauche":
-            self.rect = self.image.get_rect(center=(tank_center[0] + 10, tank_center[1] - 10))
+            self.rect = self.image.get_rect(center=(tank_center[0] + 13, tank_center[1] - 13))
         else:
             self.rect = self.image.get_rect(center=(tank_center[0] + 22, tank_center[1] + 15))
 

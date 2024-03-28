@@ -5,7 +5,7 @@ from modules.bullet import Bullet  # Importe la classe Bullet du module bullet
 
 # Classe représentant un tank
 class Tank(Movable):
-    def __init__(self, game, image_path="assets/tank.png", initial_position=(0, 0), dimensions=(80/1080, 100/1920), velocity=5, rotation="haut"):
+    def __init__(self, game, image_path="assets/tank.png", initial_position=(0, 0), dimensions=(80/1080, 106/1920), velocity=5, rotation="haut"):
         # Appel du constructeur de la classe parente (Movable)
         super().__init__(game, image_path, initial_position, dimensions, velocity)
         # Référence à l'instance de la classe Game
@@ -83,6 +83,32 @@ class Tank(Movable):
                 dy += self.velocity
                 self.move(dx, dy, "bas_gauche")
                 self.rotation = "bas_gauche"
+            # Gestion des mouvements sans diagonale
+            elif keys[pygame.K_d]:
+                # Rotation et déplacement du tank vers la droite
+                self.image = pygame.transform.rotate(self.image, -90)
+                dx += self.velocity
+                self.move(dx, dy, "droite")
+                self.rotation = "droite"
+            elif keys[pygame.K_q]:
+                # Rotation et déplacement du tank vers la gauche
+                self.image = pygame.transform.rotate(self.image, 90)
+                dx -= self.velocity
+                self.move(dx, dy, "gauche")
+                self.rotation = "gauche"
+            elif keys[pygame.K_z]:
+                # Rotation et déplacement du tank vers le haut
+                self.image = pygame.transform.rotate(self.image, 0)
+                dy -= self.velocity
+                self.move(dx, dy, "haut")
+                self.rotation = "haut"
+            elif keys[pygame.K_s]:
+                # Rotation et déplacement du tank vers le bas
+                self.image = pygame.transform.rotate(self.image, 180)
+                dy += self.velocity
+                self.move(dx, dy, "bas")
+                self.rotation = "bas"
+                
         else:
             # Gestion des mouvements sans diagonale
             if keys[pygame.K_d]:
