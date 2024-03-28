@@ -15,12 +15,18 @@ class Movable(GameObject):
     def collision(self):
         # Vérifie si l'objet est en collision avec un mur
         if self.rect.x < 0 or self.rect.x > self.game.width - self.rect.width or self.rect.y < 0 or self.rect.y > self.game.height - self.rect.height:
-            return (True, "tank")
+            return (True, "limite", None)
+        if len(self.game.tanks) > 0:
+            if len(self.game.tanks) > 1:
+                if self.rect.colliderect(self.game.tanks[1][0].rect):
+                    return (True, "tank", self.game.tanks[1][0])
+            if "bullet" in self.image_pathmovable:
+                if self.rect.colliderect(self.game.tanks[0][0].rect):
+                    return (True, "tank", self.game.tanks[0][0])
         wall = self.rect.collidelist(self.game.walls)
-        print(wall)
         if wall != -1:
-            return (True, wall)
-        return (False, None)
+            return (True, "wall", self.game.walls[wall])
+        return (False, None, None)
 
     # Méthode pour déplacer l'objet
     def move(self, dx, dy, rotate):
@@ -30,4 +36,5 @@ class Movable(GameObject):
         if self.collision()[0] and not ("bullet" in self.image_pathmovable):  # Vérifie s'il y a une collision avec un mur ou si l'objet est un projectile
             self.rect.x -= dx
             self.rect.y -= dy
-        self.spriteRotate(rotate)  # Appel de la méthode pour orienter l'image de l'objet en fonction de sa direction
+        if not "bullet" in self.image_pathmovable:
+            self.spriteRotate(rotate)  # Appel de la méthode pour orienter l'image de l'objet en fonction de sa direction

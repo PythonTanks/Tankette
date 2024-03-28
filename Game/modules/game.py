@@ -101,8 +101,6 @@ class Game:  # Définition de la classe Game
         message = None  # Initialisation de la variable message (évite les erreurs de type NoneType)
 
         self.walls = getWalls(self, "map1", "assets/walls/wall1.png")
-
-        print(1)
         
         # Boucle principale du jeu
         while self.is_running:
@@ -145,8 +143,11 @@ class Game:  # Définition de la classe Game
             
             # Vérification si la fenêtre est fermée
             if not pygame.display.get_init():
-                close_connection(self.client_socket)  # Fermeture de la connexion avec le serveur
+                close_connection(self.client_socket)  # Fermeture de la connexion
                 self.connected = False  # Mise à jour de l'état de connexion
+                self.in_main_menu = True  # Retour au menu principal
+                self.tanks = []  # Réinitialisation de la liste des tanks
+                self.in_game = False  # Le jeu n'est plus en cours
                 break
             
             if self.debug:
@@ -510,7 +511,7 @@ class Game:  # Définition de la classe Game
                                 is_open = False
                                 self.is_running = True                                
                                 self.status = "ingame"
-                                self.tanks = [self.createMyTank()]
+                                self.tanks = [self.createMyTank(), self.createEnemyTank()]
                                 self.in_game = True
                                 error1 = False
                                 error2 = False

@@ -11,6 +11,8 @@ class GameObject(pygame.sprite.Sprite):
         self.image = pygame.image.load(image_path)
         self.image = pygame.transform.scale(self.image, [dimensions[0]*self.game.height, dimensions[1]*self.game.width])
         
+        self.image_start = self.image
+        
         # Ajout d'une bordure rouge autour de l'image si le mode debug est activé
         if game.debug:
             self.image.fill((255, 0, 0), rect=[0, 0, dimensions[0], 5])
@@ -72,3 +74,6 @@ class GameObject(pygame.sprite.Sprite):
             self.image = self.image_down_left
         else:
             self.image = self.image_custom
+    
+    def newAngle(self, angle):
+        self.image_custom = pygame.transform.rotate(self.image_start, 270 - angle)
