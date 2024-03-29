@@ -8,7 +8,7 @@ import datetime  # Importation de la bibliothèque datetime pour manipuler des o
 import random  # Importation de la bibliothèque random pour générer des nombres aléatoires
 from modules.tank import Tank  # Importation de la classe Tank depuis le fichier modules/tank.py
 from modules.topTank import TopTank  # Importation de la classe TopTank depuis le fichier modules/topTank.py
-from modules.network import connect_to_server, send_message, receive_messages, close_connection  # Importation de certaines fonctions depuis le fichier modules/network.py
+from modules.network import connect_to_server, send_message, receive_messages, close_connection, get_map  # Importation de certaines fonctions depuis le fichier modules/network.py
 from modules.bullet import Bullet  # Importation de la classe Bullet depuis le fichier modules/bullet.py
 from modules.map import getWalls
 
@@ -58,6 +58,7 @@ class Game:  # Définition de la classe Game
         self.controls = {"up_key" : "z", "down_key": "s", "left_key" : "q", "right_key" : "d", "shoot_key" : "space"} # Initialisation du dictionnaire des contrôles
         
         self.walls = []
+        self.map = None
         
     def setPygame(self):
         pygame.init()  # Initialisation de Pygame
@@ -107,6 +108,7 @@ class Game:  # Définition de la classe Game
         self.tanks = []  # Réinitialisation de la liste des tanks
         self.in_game = False  # Le jeu n'est plus en cours
         self.walls = []
+        self.map = None
 
     def game(self):  # Méthode pour démarrer le jeu
         
@@ -139,13 +141,20 @@ class Game:  # Définition de la classe Game
                 self.screen.blit(self.tanks[0][0].image, self.tanks[0][0].rect)  # Affichage du Tank
                 self.screen.blit(self.tanks[0][1].image, self.tanks[0][1].rect)  # Affichage du TopTank
                 
-                if type(message) == tuple and message[0] == "ready":
+                if type(message) != str and message[0] == "ready":
                     print("[CLIENT] Un adversaire s'est connecté.")
                     self.tanks.append(self.createEnemyTank())
                     wallType = random.choice(["assets/walls/wall1.png", "assets/walls/wall2.png", "assets/walls/wall3.png", "assets/walls/wall4.png"])
-                    self.walls = getWalls(self, message[1], wallType)
+                    self.map = get_map()
+                    self.walls = getWalls(self, self.map, wallType)
             
             if self.in_game and len(self.tanks) > 1:
+
+                if self.map == None:
+                    self.map = get_map()
+                    if self.map != None:
+                        wallType = random.choice(["assets/walls/wall1.png", "assets/walls/wall2.png", "assets/walls/wall3.png", "assets/walls/wall4.png"])
+                        self.walls = getWalls(self, self.map, wallType)
                 
                 for tank in self.tanks:
                     self.screen.blit(tank[0].image, tank[0].rect)

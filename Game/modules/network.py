@@ -25,6 +25,10 @@ def connect_to_server(SERVER_PORT, SERVER_HOST):
             print("[CLIENT] Connexion au serveur échouée.")
         return False
     
+def get_map():
+    if status != "wait":
+        return status
+    
 # Fonction pour recevoir les messages du serveur
 def receive_messages(SERVER_PORT, SERVER_HOST):
     global ltime
@@ -32,12 +36,12 @@ def receive_messages(SERVER_PORT, SERVER_HOST):
     if status == "wait":
             response = requests.get(f"http://{SERVER_HOST}:5555/status/{SERVER_PORT}/{IPAddr}")
             if response.status_code == 200:
-                if response.text[:3] != "wait":
-                    status = response.text
+                if response.text != "wait":
+                    status = response.text[-4:]
                     if debug:
                         print(f"[CLIENT] Status : {status}")
                         print("[CLIENT] Status reçu du serveur.")
-                    return ("ready", response.text[5:])
+                    return ("ready", status)
                 else:
                     return "wait"
             else:
