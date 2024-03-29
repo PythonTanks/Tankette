@@ -189,7 +189,7 @@ class Game:  # Définition de la classe Game
             if self.in_game and len(self.tanks) > 1:
                 
                 # Gestion des entrées utilisateur
-                self.tanks[0][0].handle_input()  # Gestion des contrôles du Tank
+                self.tanks[0][0].handle_input(self.controls["up_key"], self.controls["down_key"], self.controls["left_key"], self.controls["right_key"], self.controls["shoot_key"])
                 self.tanks[0][1].rotate()  # Rotation du TopTank
 
                 if message and type(message) == list and message[0] != "None":

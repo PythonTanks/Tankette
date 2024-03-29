@@ -49,7 +49,7 @@ class Tank(Movable):
                 pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
 
     # Méthode pour gérer les entrées de l'utilisateur
-    def handle_input(self):
+    def handle_input(self, up_key, down_key, left_key, right_key, shoot_key):
         # Récupère l'état actuel des touches du clavier
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -57,28 +57,28 @@ class Tank(Movable):
         # Si le jeu autorise les mouvements en diagonale
         if self.game.diagonales:
             # Gestion des mouvements en diagonale
-            if keys[pygame.K_d] and keys[pygame.K_z]:
+            if keys[pygame.key.key_code(up_key)] and keys[pygame.key.key_code(right_key)]:
                 # Rotation et déplacement du tank vers le haut et la droite
                 self.image = pygame.transform.rotate(self.image, -45)
                 dx += self.velocity
                 dy -= self.velocity
                 self.move(dx, dy, "haut_droit")
                 self.rotation = "haut_droit"
-            elif keys[pygame.K_d] and keys[pygame.K_s]:
+            elif keys[pygame.key.key_code(down_key)] and keys[pygame.key.key_code(right_key)]:
                 # Rotation et déplacement du tank vers le bas et la droite
                 self.image = pygame.transform.rotate(self.image, -135)
                 dx += self.velocity
                 dy += self.velocity
                 self.move(dx, dy, "bas_droit")
                 self.rotation = "bas_droit"
-            elif keys[pygame.K_q] and keys[pygame.K_z]:
+            elif keys[pygame.key.key_code(down_key)] and keys[pygame.key.key_code(left_key)]:
                 # Rotation et déplacement du tank vers le haut et la gauche
                 self.image = pygame.transform.rotate(self.image, 45)
                 dx -= self.velocity
                 dy -= self.velocity
                 self.move(dx, dy, "haut_gauche")
                 self.rotation = "haut_gauche"
-            elif keys[pygame.K_q] and keys[pygame.K_s]:
+            elif keys[pygame.key.key_code(up_key)] and keys[pygame.key.key_code(left_key)]:
                 # Rotation et déplacement du tank vers le bas et la gauche
                 self.image = pygame.transform.rotate(self.image, 135)
                 dx -= self.velocity
@@ -86,25 +86,25 @@ class Tank(Movable):
                 self.move(dx, dy, "bas_gauche")
                 self.rotation = "bas_gauche"
             # Gestion des mouvements sans diagonale
-            elif keys[pygame.K_d]:
+            elif keys[pygame.key.key_code(right_key)]:
                 # Rotation et déplacement du tank vers la droite
                 self.image = pygame.transform.rotate(self.image, -90)
                 dx += self.velocity
                 self.move(dx, dy, "droite")
                 self.rotation = "droite"
-            elif keys[pygame.K_q]:
+            elif keys[pygame.key.key_code(left_key)]:
                 # Rotation et déplacement du tank vers la gauche
                 self.image = pygame.transform.rotate(self.image, 90)
                 dx -= self.velocity
                 self.move(dx, dy, "gauche")
                 self.rotation = "gauche"
-            elif keys[pygame.K_z]:
+            elif keys[pygame.key.key_code(up_key)]:
                 # Rotation et déplacement du tank vers le haut
                 self.image = pygame.transform.rotate(self.image, 0)
                 dy -= self.velocity
                 self.move(dx, dy, "haut")
                 self.rotation = "haut"
-            elif keys[pygame.K_s]:
+            elif keys[pygame.key.key_code(down_key)]:
                 # Rotation et déplacement du tank vers le bas
                 self.image = pygame.transform.rotate(self.image, 180)
                 dy += self.velocity
@@ -113,25 +113,25 @@ class Tank(Movable):
                 
         else:
             # Gestion des mouvements sans diagonale
-            if keys[pygame.K_d]:
+            if keys[pygame.key.key_code(right_key)]:
                 # Rotation et déplacement du tank vers la droite
                 self.image = pygame.transform.rotate(self.image, -90)
                 dx += self.velocity
                 self.move(dx, dy, "droite")
                 self.rotation = "droite"
-            elif keys[pygame.K_q]:
+            elif keys[pygame.key.key_code(left_key)]:
                 # Rotation et déplacement du tank vers la gauche
                 self.image = pygame.transform.rotate(self.image, 90)
                 dx -= self.velocity
                 self.move(dx, dy, "gauche")
                 self.rotation = "gauche"
-            elif keys[pygame.K_z]:
+            elif keys[pygame.key.key_code(up_key)]:
                 # Rotation et déplacement du tank vers le haut
                 self.image = pygame.transform.rotate(self.image, 0)
                 dy -= self.velocity
                 self.move(dx, dy, "haut")
                 self.rotation = "haut"
-            elif keys[pygame.K_s]:
+            elif keys[pygame.key.key_code(down_key)]:
                 # Rotation et déplacement du tank vers le bas
                 self.image = pygame.transform.rotate(self.image, 180)
                 dy += self.velocity
@@ -139,7 +139,7 @@ class Tank(Movable):
                 self.rotation = "bas"
                 
         # Si la touche 'espace' est pressée
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.key.key_code(shoot_key)]:
             # Vérifie si le temps écoulé depuis le dernier tir est supérieur à 0.5 seconde
             now = time.time()
             if now - self.last_shot > 0.5:
