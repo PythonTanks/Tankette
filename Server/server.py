@@ -11,6 +11,7 @@ import os  # Fournit des fonctionnalités pour interagir avec le système d'expl
 import yaml # Importation de la bibliothèque PyYAML pour lire le fichier de configuration
 import json # Importation de la bibliothèque JSON pour manipuler des objets JSON
 import random # Importation de la bibliothèque random pour générer des nombres aléatoires
+import time # Importation de la bibliothèque time pour manipuler le temps
 
 # Configuration du serveur Flask
 app = Flask("TanketteServer")  # Crée une instance de Flask nommée "TanketteServer"
@@ -73,7 +74,7 @@ def connect(code, IP):
     listCodes[code][IP] = "Connected"
     if len(listCodes[code].keys()) == 3:
         for key in listCodes[code].keys():
-            listCodes[code][key] = "None"
+            listCodes[code][key] = ["None", time.time()]
         listCodes[code]["status"] = random.choice(["map1", "map2"])
     print(f"    [API] {IP} connecté au code {code}")
     return "Connecté", 200
@@ -105,7 +106,7 @@ def send(code, IP):
         return "Code non valide", 400
     if IP not in listCodes[code]:
         return "Non connecté", 400
-    listCodes[code][IP] = list(msg)
+    listCodes[code][IP][0] = list(msg)
     return "Message envoyé", 200
 
 @app.route("/status/<int:code>/<IP>", methods=['GET'])
@@ -127,7 +128,9 @@ def receive(code, IP):
         return "Vous êtes seul", 300
     for key in listCodes[code].keys():
         if key != IP and key != "status":
-            return jsonify(listCodes[code][key]), 200
+            if time.time() - listCodes[code][key][1] > 5:
+                return "Pas de message", 400
+            return jsonify(listCodes[code][key][0]), 200
     return "Pas de message", 400
 
 # Point d'entrée du programme
