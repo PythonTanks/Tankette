@@ -74,7 +74,7 @@ def connect(code, IP):
     listCodes[code][IP] = "Connected"
     if len(listCodes[code].keys()) == 3:
         for key in listCodes[code].keys():
-            listCodes[code][key] = ["None", time.time()]
+            listCodes[code][key] = "None"
         listCodes[code]["status"] = random.choice(["map1", "map2"])
     print(f"    [API] {IP} connecté au code {code}")
     return "Connecté", 200
@@ -106,7 +106,7 @@ def send(code, IP):
         return "Code non valide", 400
     if IP not in listCodes[code]:
         return "Non connecté", 400
-    listCodes[code][IP][0] = list(msg)
+    listCodes[code][IP] = list(msg)
     return "Message envoyé", 200
 
 @app.route("/status/<int:code>/<IP>", methods=['GET'])
@@ -128,9 +128,7 @@ def receive(code, IP):
         return "Vous êtes seul", 300
     for key in listCodes[code].keys():
         if key != IP and key != "status":
-            if time.time() - listCodes[code][key][1] > 5:
-                return "Pas de message", 400
-            return jsonify(listCodes[code][key][0]), 200
+            return jsonify(listCodes[code][key]), 200
     return "Pas de message", 400
 
 # Point d'entrée du programme
