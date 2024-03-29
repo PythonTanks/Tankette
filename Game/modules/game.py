@@ -59,6 +59,10 @@ class Game:  # Définition de la classe Game
         
         self.walls = []
         self.map = None
+
+        self.pause = False
+
+        self.waiting = False
         
     def setPygame(self):
         pygame.init()  # Initialisation de Pygame
@@ -91,6 +95,12 @@ class Game:  # Définition de la classe Game
         
         # Initialisation des polices de caractères (texte d'attente)
         self.wainting_text = self.mediumfont.render("En attente d'adversaire..." , True , (255,255,255))
+        self.waiting_text = self.mediumfont.render("Votre adversaire est en pause..." , True , (255,255,255))
+
+        # Initialisation des polices de caractères (texte menu pause)
+        self.pause_text = self.largefont.render("Pause" , True , (255,255,255))
+        self.reprendre_text = self.smallfont.render("Reprendre" , True , (255,255,255))
+        self.quitter_text = self.smallfont.render("Quitter" , True , (255,255,255))
         
         # Initialisation des polices de caractères (texte d'erreurs)
         self.error1_surface = self.smallfont.render("Le serveur est plein !" , True , (255,64,64))  # Création d'une surface de texte
@@ -109,6 +119,7 @@ class Game:  # Définition de la classe Game
         self.in_game = False  # Le jeu n'est plus en cours
         self.walls = []
         self.map = None
+        self.pause = False
 
     def game(self):  # Méthode pour démarrer le jeu
         
@@ -171,6 +182,9 @@ class Game:  # Définition de la classe Game
             if self.in_main_menu:
                 self.mainmenuScreen()  # Affichage de l'écran du menu principal
                 self.in_main_menu = False  # Changement du statut du menu
+
+            if self.waiting:
+                self.screen.blit(self.waiting_text, (self.width/2 - self.wainting_text.get_width()/2, 70))
             
             pygame.display.update()  # Mise à jour de l'affichage
             
@@ -187,10 +201,15 @@ class Game:  # Définition de la classe Game
                 self.debugScreen(pygame.mouse.get_pos())  # Affichage des informations de débogage
             
             if self.in_game and len(self.tanks) > 1:
+
+                if self.pause:
+                    self.pauseMenu()  # Affichage du menu de pause
+                    self.pause = False  # Désactivation du mode pause
                 
-                # Gestion des entrées utilisateur
-                self.tanks[0][0].handle_input(self.controls["up_key"], self.controls["down_key"], self.controls["left_key"], self.controls["right_key"], self.controls["shoot_key"])
-                self.tanks[0][1].rotate()  # Rotation du TopTank
+                if not self.pause and not self.waiting:
+                    # Gestion des entrées utilisateur
+                    self.tanks[0][0].handle_input(self.controls["up_key"], self.controls["down_key"], self.controls["left_key"], self.controls["right_key"], self.controls["shoot_key"])
+                    self.tanks[0][1].rotate()  # Rotation du TopTank
 
                 if message and type(message) == list and message[0] != "None":
                     # Mise à jour des informations des tanks ennemis
@@ -204,6 +223,7 @@ class Game:  # Définition de la classe Game
                         self.tanks[1][0].all_projectiles.add(Bullet(self, angle=projectile["angle"], start=projectile["position"]))
                     self.tanks[1][0].life = min(message[4], self.tanks[1][0].life)  # Mise à jour des points de vie du tank ennemi
                     self.tanks[0][0].life = min(message[5], self.tanks[0][0].life)   # Mise à jour des points de vie du tank ennemi
+                    self.waiting = message[6]
 
                     if self.debug:
                         print(f"[CLIENT] Message reçu: {message}")  # Affichage du message reçu du serveur
@@ -211,7 +231,7 @@ class Game:  # Définition de la classe Game
                 # Envoi des données au serveur
                 if self.connected:
                     # Préparation des données à envoyer au serveur
-                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life]
+                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
                     if data != None:
                         send_message(data, self.port, self.ip)
 
@@ -227,7 +247,10 @@ class Game:  # Définition de la classe Game
                     self.pressed[event.key] = False  # Enregistrement de la touche relâchée
             
             if(self.pressed.get(pygame.K_ESCAPE)):
-                self.in_main_menu = True  # Retour au menu principal en cas d'appui sur la touche ESCAPE
+                if len(self.tanks) < 2:
+                    self.in_main_menu = True
+                else:
+                    self.pause = not self.pause
     
         # Méthode pour afficher des informations de débogage à l'écran
     def debugScreen(self, info, x=10, y=10):
@@ -595,3 +618,34 @@ class Game:  # Définition de la classe Game
             position = ((self.width - 200) / 2, (self.height - 200) / 2)
         tank = Tank(self, initial_position=position, rotation=direction, image_path="assets/tank2.png")
         return (tank, TopTank(self, tank, angle=angle, image_path="assets/toptank2.png"))
+    
+    def pauseMenu(self):
+        while self.pause:
+            # Affichage du titre
+            self.screen.blit(self.pause_text, (self.width/2 - self.pause_text.get_width()/2, 50))
+            # Affichage du bouton "Reprendre"
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,290,150,40])
+            self.screen.blit(self.reprendre_text, (self.width/2 - self.reprendre_text.get_width()/2, 300))
+            # Affichage du bouton "Quitter"
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,340,150,40])
+            self.screen.blit(self.quitter_text, (self.width/2 - self.quitter_text.get_width()/2, 350))
+            pygame.display.update()
+
+            data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
+            if data != None:
+                send_message(data, self.port, self.ip)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.stopGame()
+                elif event.type == pygame.KEYDOWN:
+                    self.pressed[event.key] = True
+                elif event.type == pygame.KEYUP:
+                    self.pressed[event.key] = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 290 <= event.pos[1] <= 330:
+                            self.pause = False
+                        elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 340 <= event.pos[1] <= 380:
+                            self.finish()
+                            self.pause = False
