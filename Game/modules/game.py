@@ -5,9 +5,10 @@ import yaml # Importation de la bibliothèque yaml pour manipuler des fichiers d
 import time  # Importation de la bibliothèque time pour manipuler le temps
 import requests  # Importation de la bibliothèque requests pour effectuer des requêtes HTTP
 import datetime  # Importation de la bibliothèque datetime pour manipuler des objets datetime
+import random  # Importation de la bibliothèque random pour générer des nombres aléatoires
 from modules.tank import Tank  # Importation de la classe Tank depuis le fichier modules/tank.py
 from modules.topTank import TopTank  # Importation de la classe TopTank depuis le fichier modules/topTank.py
-from modules.network import connect_to_server, send_message, get_last_message, close_connection  # Importation de certaines fonctions depuis le fichier modules/network.py
+from modules.network import connect_to_server, send_message, receive_messages, close_connection, get_map  # Importation de certaines fonctions depuis le fichier modules/network.py
 from modules.bullet import Bullet  # Importation de la classe Bullet depuis le fichier modules/bullet.py
 from modules.map import getWalls
 
@@ -29,6 +30,7 @@ class Game:  # Définition de la classe Game
         self.background = pygame.transform.scale(self.background_path, (self.width, self.height))  # Redimensionnement de l'image de fond
         self.icon_path = icon_path  # Chemin vers l'icône du jeu
         self.write_port_mode = ""  # Port du serveur (initialisation à vide)
+        self.time = 0  # Initialisation du temps
         
         self.pressed = {}  # Dictionnaire pour gérer les touches pressées
         
@@ -55,6 +57,13 @@ class Game:  # Définition de la classe Game
 
         self.controls = {"up_key" : "z", "down_key": "s", "left_key" : "q", "right_key" : "d", "shoot_key" : "space"} # Initialisation du dictionnaire des contrôles
         
+        self.walls = []
+        self.map = None
+
+        self.pause = False
+
+        self.waiting = False
+        
     def setPygame(self):
         pygame.init()  # Initialisation de Pygame
         pygame.display.set_caption(self.title)  # Définition du titre de la fenêtre
@@ -73,7 +82,7 @@ class Game:  # Définition de la classe Game
 
         # Initialisation des polices de caractères (textes menu jouer)
         self.port_text = self.smallfont.render('Port du serveur' , True , (255,255,255))
-        self.ip_text = self.smallfont.render('Adresse IP du serveur' , True , (255,255,255))
+        self.ip_text = self.smallfont.render('Code du serveur' , True , (255,255,255))
         self.play_text = self.smallfont.render('Rejoindre' , True , (255,255,255))
         self.create_text = self.smallfont.render('Créer' , True , (255,255,255))
 
@@ -86,11 +95,31 @@ class Game:  # Définition de la classe Game
         
         # Initialisation des polices de caractères (texte d'attente)
         self.wainting_text = self.mediumfont.render("En attente d'adversaire..." , True , (255,255,255))
+        self.waiting_text = self.mediumfont.render("Votre adversaire est en pause..." , True , (255,255,255))
+
+        # Initialisation des polices de caractères (texte menu pause)
+        self.pause_text = self.largefont.render("Pause" , True , (255,255,255))
+        self.reprendre_text = self.smallfont.render("Reprendre" , True , (255,255,255))
+        self.quitter_text = self.smallfont.render("Quitter" , True , (255,255,255))
         
         # Initialisation des polices de caractères (texte d'erreurs)
-        self.error1_surface = self.smallfont.render("Serveur indisponible" , True , (255,64,64))  # Création d'une surface de texte
-        self.error2_surface = self.smallfont.render("Error" , True , (255,64,64))  # Création d'une surface de texte
-        self.error3_surface = self.smallfont.render("Port indisponible" , True , (255,64,64))  # Création d'une surface de texte
+        self.error1_surface = self.smallfont.render("Le serveur est plein !" , True , (255,64,64))  # Création d'une surface de texte
+        self.error2_surface = self.smallfont.render("Le serveur n'éxiste pas !" , True , (255,64,64))  # Création d'une surface de texte
+        self.error3_surface = self.smallfont.render("Une erreur est survenue." , True , (255,64,64))  # Création d'une surface de texte
+    
+    def finish(self):
+        close_connection(self.port, self.ip)  # Fermeture de la connexion
+        self.connected = False  # Mise à jour de l'état de connexion
+        self.in_main_menu = True  # Retour au menu principal
+        for tank in self.tanks:
+            tank[0].all_projectiles.empty()
+            tank[1].kill()
+            tank[0].kill()
+        self.tanks = []  # Réinitialisation de la liste des tanks
+        self.in_game = False  # Le jeu n'est plus en cours
+        self.walls = []
+        self.map = None
+        self.pause = False
 
     def game(self):  # Méthode pour démarrer le jeu
         
@@ -99,8 +128,6 @@ class Game:  # Définition de la classe Game
         self.setFonts()  # Initialisation des polices de caractères
 
         message = None  # Initialisation de la variable message (évite les erreurs de type NoneType)
-
-        self.walls = getWalls(self, "map1", "assets/walls/wall1.png")
         
         # Boucle principale du jeu
         while self.is_running:
@@ -111,16 +138,12 @@ class Game:  # Définition de la classe Game
                 self.screen.blit(wall.image, wall.rect)
             
             if self.in_game and self.connected:
-                message = get_last_message()
+                message = receive_messages(self.port, self.ip)
                 
                 # Gestion des messages reçus du serveur
-                if message == "Disconnected":
+                if message == "Finish":
                     print("[CLIENT] Déconnexion du serveur.")
-                    close_connection(self.client_socket)  # Fermeture de la connexion
-                    self.connected = False  # Mise à jour de l'état de connexion
-                    self.in_main_menu = True  # Retour au menu principal
-                    self.tanks = []  # Réinitialisation de la liste des tanks
-                    self.in_game = False  # Le jeu n'est plus en cours
+                    self.finish()
             
             if self.in_game and len(self.tanks) == 1:
                 
@@ -129,11 +152,20 @@ class Game:  # Définition de la classe Game
                 self.screen.blit(self.tanks[0][0].image, self.tanks[0][0].rect)  # Affichage du Tank
                 self.screen.blit(self.tanks[0][1].image, self.tanks[0][1].rect)  # Affichage du TopTank
                 
-                if message == "Connected":
+                if type(message) != str and message[0] == "ready":
                     print("[CLIENT] Un adversaire s'est connecté.")
                     self.tanks.append(self.createEnemyTank())
+                    wallType = random.choice(["assets/walls/wall1.png", "assets/walls/wall2.png", "assets/walls/wall3.png", "assets/walls/wall4.png"])
+                    self.map = get_map()
+                    self.walls = getWalls(self, self.map, wallType)
             
             if self.in_game and len(self.tanks) > 1:
+
+                if self.map == None:
+                    self.map = get_map()
+                    if self.map != None:
+                        wallType = random.choice(["assets/walls/wall1.png", "assets/walls/wall2.png", "assets/walls/wall3.png", "assets/walls/wall4.png"])
+                        self.walls = getWalls(self, self.map, wallType)
                 
                 for tank in self.tanks:
                     self.screen.blit(tank[0].image, tank[0].rect)
@@ -150,6 +182,9 @@ class Game:  # Définition de la classe Game
             if self.in_main_menu:
                 self.mainmenuScreen()  # Affichage de l'écran du menu principal
                 self.in_main_menu = False  # Changement du statut du menu
+
+            if self.waiting:
+                self.screen.blit(self.waiting_text, (self.width/2 - self.wainting_text.get_width()/2, 70))
             
             pygame.display.update()  # Mise à jour de l'affichage
             
@@ -166,12 +201,17 @@ class Game:  # Définition de la classe Game
                 self.debugScreen(pygame.mouse.get_pos())  # Affichage des informations de débogage
             
             if self.in_game and len(self.tanks) > 1:
-                
-                # Gestion des entrées utilisateur
-                self.tanks[0][0].handle_input()  # Gestion des contrôles du Tank
-                self.tanks[0][1].rotate()  # Rotation du TopTank
 
-                if message and type(message) == list:
+                if self.pause:
+                    self.pauseMenu()  # Affichage du menu de pause
+                    self.pause = False  # Désactivation du mode pause
+                
+                if not self.pause and not self.waiting:
+                    # Gestion des entrées utilisateur
+                    self.tanks[0][0].handle_input(self.controls["up_key"], self.controls["down_key"], self.controls["left_key"], self.controls["right_key"], self.controls["shoot_key"])
+                    self.tanks[0][1].rotate()  # Rotation du TopTank
+
+                if message and type(message) == list and message[0] != "None":
                     # Mise à jour des informations des tanks ennemis
                     self.tanks[1][0].rect.x = message[0][0]
                     self.tanks[1][0].rect.y = message[0][1]
@@ -183,6 +223,7 @@ class Game:  # Définition de la classe Game
                         self.tanks[1][0].all_projectiles.add(Bullet(self, angle=projectile["angle"], start=projectile["position"]))
                     self.tanks[1][0].life = min(message[4], self.tanks[1][0].life)  # Mise à jour des points de vie du tank ennemi
                     self.tanks[0][0].life = min(message[5], self.tanks[0][0].life)   # Mise à jour des points de vie du tank ennemi
+                    self.waiting = message[6]
 
                     if self.debug:
                         print(f"[CLIENT] Message reçu: {message}")  # Affichage du message reçu du serveur
@@ -190,14 +231,15 @@ class Game:  # Définition de la classe Game
                 # Envoi des données au serveur
                 if self.connected:
                     # Préparation des données à envoyer au serveur
-                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life]
+                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
                     if data != None:
-                        send_message(data, self.client_socket)
+                        send_message(data, self.port, self.ip)
 
             
             # Gestion des événements
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
+                # Si l'utilisateur ferme la fenêtre avec la croix ou fait ALT+F4
+                if event.type == pygame.QUIT:
                     self.stopGame()  # Arrêt du jeu
                 elif event.type == pygame.KEYDOWN:  # Si une touche est pressée
                     self.pressed[event.key] = True  # Enregistrement de la touche pressée
@@ -205,7 +247,10 @@ class Game:  # Définition de la classe Game
                     self.pressed[event.key] = False  # Enregistrement de la touche relâchée
             
             if(self.pressed.get(pygame.K_ESCAPE)):
-                self.in_main_menu = True  # Retour au menu principal en cas d'appui sur la touche ESCAPE
+                if len(self.tanks) < 2:
+                    self.in_main_menu = True
+                else:
+                    self.pause = not self.pause
     
         # Méthode pour afficher des informations de débogage à l'écran
     def debugScreen(self, info, x=10, y=10):
@@ -216,17 +261,7 @@ class Game:  # Définition de la classe Game
         display_surface.blit(debug_surface, debug_rect)   # Affichage de la surface de texte
 
     def mainmenuScreen(self):
-        close_connection(self.client_socket)  # Fermeture de la connexion
-        self.connected = False  # Mise à jour de l'état de connexion
-        self.in_main_menu = True  # Retour au menu principal
-        self.tanks = []  # Réinitialisation de la liste des tanks
-        self.in_game = False  # Le jeu n'est plus en cours
-
-        if self.client_socket:
-            close_connection(self.client_socket)  # Fermeture de la connexion avec le serveur
-            self.connected = False  # Mise à jour de l'état de connexion
-            self.client_socket = None  # Réinitialisation du socket client
-            self.tanks = []  # Réinitialisation de la liste des tanks
+        self.finish()  # Arrêt de la partie en cours
         is_open = True
         while is_open:
             self.screen.fill((0, 0, 0))  # Remplissage de l'écran en noir
@@ -476,54 +511,76 @@ class Game:  # Définition de la classe Game
                             self.port = int(self.port)
                             response = requests.get(f"http://{self.ip}:5555/server/{self.port}")
                             if response.status_code == 200:
-                                self.client_socket = connect_to_server(self.port, self.ip)
-                                self.connected = True
-                                is_open = False
-                                self.is_running = True
-                                self.status = "ingame"
-                                self.tanks = [self.createMyTank(position = ((self.width - 200) / 2, (self.height - 200) / 2), direction="gauche", angle=135.), self.createEnemyTank(position=(100, 100), direction="droite", angle=0)]
-                                self.in_game = True
-                                error1 = False
-                                error2 = False
-                                error3 = False
-                                error1_time = None
-                                error2_time = None
-                                error3_time = None
+                                print("[CLIENT] Le serveur existe !")
+                                connect = connect_to_server(self.port, self.ip)
+                                if connect:
+                                    print("[CLIENT] Connexion au serveur réussie !")
+                                    self.connected = True
+                                    is_open = False
+                                    self.is_running = True
+                                    self.status = "ingame"
+                                    self.tanks = [self.createMyTank(position = ((self.width - 200) / 2, (self.height - 200) / 2), direction="gauche", angle=135.), self.createEnemyTank(position=(100, 100), direction="droite", angle=0)]
+                                    self.in_game = True
+                                    error1 = False
+                                    error2 = False
+                                    error3 = False
+                                    error1_time = None
+                                    error2_time = None
+                                    error3_time = None
+                                else:
+                                    error1 = True
+                                    error2 = False
+                                    error3 = False
+                                    error1_time = time.time()
+                                    error2_time = None
+                                    error3_time = None
+                                    print("[CLIENT] Serveur plein !")
                             elif response.status_code == 400:
-                                error1 = True
-                                error2 = False
+                                error1 = False
+                                error2 = True
                                 error3 = False
                                 error1_time = time.time()
                                 error2_time = None
                                 error3_time = None
-                                print("[CLIENT] Server not found on port " + str(self.port) + " and IP " + self.ip)
+                                print("[CLIENT] Le serveur n'éxiste pas !")
                             else:
                                 error1 = False
-                                error2 = True
-                                error3 = False
+                                error2 = False
+                                error3 = True
                                 error1_time = None
                                 error2_time = time.time()
                                 error3_time = None
-                                print("[CLIENT] Error while connecting to server on port " + str(self.port) + " and IP " + self.ip)
+                                print("[CLIENT] Une erreur est survenue !")
                                         
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 490 <= event.pos[1] <= 530: #clic sur le bouton créer
                             print("[CLIENT] Creating server on port " + str(self.ip) + ":" + str(self.port))
                             self.port = int(self.port)
                             response = requests.post(f"http://{self.ip}:5555/server/{self.port}")
                             if response.status_code == 200:
-                                self.client_socket = connect_to_server(self.port, self.ip)
-                                self.connected = True
-                                is_open = False
-                                self.is_running = True                                
-                                self.status = "ingame"
-                                self.tanks = [self.createMyTank()]
-                                self.in_game = True
-                                error1 = False
-                                error2 = False
-                                error3 = False
-                                error1_time = None
-                                error2_time = None
-                                error3_time = None
+                                print("[CLIENT] Création du serveur réussie !")
+                                connect = connect_to_server(self.port, self.ip)
+                                if connect:
+                                    print("[CLIENT] Connexion au serveur réussie !")
+                                    self.connected = True
+                                    is_open = False
+                                    self.is_running = True                                
+                                    self.status = "ingame"
+                                    self.tanks = [self.createMyTank()]
+                                    self.in_game = True
+                                    error1 = False
+                                    error2 = False
+                                    error3 = False
+                                    error1_time = None
+                                    error2_time = None
+                                    error3_time = None
+                                else:
+                                    error1 = True
+                                    error2 = False
+                                    error3 = False
+                                    error1_time = time.time()
+                                    error2_time = None
+                                    error3_time = None
+                                    print("[CLIENT] Serveur plein !")
                             elif response.status_code == 400:
                                 error1 = False
                                 error2 = False
@@ -531,7 +588,7 @@ class Game:  # Définition de la classe Game
                                 error1_time = None
                                 error2_time = None
                                 error3_time = time.time()
-                                print("[CLIENT] Server already exists on port " + str(self.port))
+                                print("[CLIENT] Le serveur n'éxiste pas !")
                             else:
                                 error1 = False
                                 error2 = True
@@ -539,7 +596,7 @@ class Game:  # Définition de la classe Game
                                 error1_time = None
                                 error2_time = time.time()
                                 error3_time = None
-                                print("[CLIENT] Error while creating server on port " + str(self.port) + " and IP " + self.ip)
+                                print("[CLIENT] Une erreur est survenue !")
 
                 if self.pressed.get(pygame.K_ESCAPE):
                     self.in_main_menu = True
@@ -548,7 +605,7 @@ class Game:  # Définition de la classe Game
     def stopGame(self):
         self.is_running = False  # Mise à jour de l'état de fonctionnement du jeu
         pygame.quit()  # Arrêt de Pygame
-        close_connection(self.client_socket)  # Fermeture de la connexion
+        close_connection(SERVER_HOST=IP_SERVER, SERVER_PORT=5556)  # Fermeture de la connexion
         print("Game stopped")  # Message d'arrêt du jeu
         return None
     
@@ -561,3 +618,34 @@ class Game:  # Définition de la classe Game
             position = ((self.width - 200) / 2, (self.height - 200) / 2)
         tank = Tank(self, initial_position=position, rotation=direction, image_path="assets/tank2.png")
         return (tank, TopTank(self, tank, angle=angle, image_path="assets/toptank2.png"))
+    
+    def pauseMenu(self):
+        while self.pause:
+            # Affichage du titre
+            self.screen.blit(self.pause_text, (self.width/2 - self.pause_text.get_width()/2, 50))
+            # Affichage du bouton "Reprendre"
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,290,150,40])
+            self.screen.blit(self.reprendre_text, (self.width/2 - self.reprendre_text.get_width()/2, 300))
+            # Affichage du bouton "Quitter"
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,340,150,40])
+            self.screen.blit(self.quitter_text, (self.width/2 - self.quitter_text.get_width()/2, 350))
+            pygame.display.update()
+
+            data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
+            if data != None:
+                send_message(data, self.port, self.ip)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.stopGame()
+                elif event.type == pygame.KEYDOWN:
+                    self.pressed[event.key] = True
+                elif event.type == pygame.KEYUP:
+                    self.pressed[event.key] = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 290 <= event.pos[1] <= 330:
+                            self.pause = False
+                        elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 340 <= event.pos[1] <= 380:
+                            self.finish()
+                            self.pause = False

@@ -1,7 +1,7 @@
 import sys
 
 # Import des modules nécessaires
-from flask import Flask, request  # Importe Flask pour créer un serveur web et request pour gérer les requêtes HTTP
+from flask import Flask, request, jsonify  # Importe Flask pour créer un serveur web et request pour gérer les requêtes HTTP
 import threading  # Permet d'exécuter plusieurs tâches en parallèle
 import socket  # Utilisé pour les communications réseau
 import pickle  # Convertit les objets Python en octets et vice versa
@@ -9,6 +9,9 @@ import logging  # Utilisé pour gérer les logs
 import datetime  # Pour manipuler des objets datetime
 import os  # Fournit des fonctionnalités pour interagir avec le système d'exploitation
 import yaml # Importation de la bibliothèque PyYAML pour lire le fichier de configuration
+import json # Importation de la bibliothèque JSON pour manipuler des objets JSON
+import random # Importation de la bibliothèque random pour générer des nombres aléatoires
+import time # Importation de la bibliothèque time pour manipuler le temps
 
 # Configuration du serveur Flask
 app = Flask("TanketteServer")  # Crée une instance de Flask nommée "TanketteServer"
@@ -38,135 +41,97 @@ if API_LOG_FILE:
     fileAPI = open("logs/api.log", "a")  # Ouvre le fichier de log de l'API en mode append
 
 # Liste des ports utilisés
-listPorts = []
+listCodes = {}
 
 # Définition de l'API Flask pour démarrer ou arrêter un serveur
-@app.route('/server/<int:port>', methods=['POST', 'GET'])
-def server(port):
-    if request.method == 'POST':
-        if port in listPorts or port == 5555:
-            return "Port déjà utilisé", 400
-        server_thread = threading.Thread(target=MyServer, args=(port,))
-        server_thread.start()
-        listPorts.append(port)
-        return "Serveur démarré", 200
+@app.route('/server/<int:code>', methods=['GET'])
+def status(code):
     if request.method == 'GET':
-        if port in listPorts:
-            return "Port déjà utilisé", 200
-        return "Serveur non disponible", 400
+        for c in listCodes.keys():
+            if c == code:
+                return "Serveur démarré", 200
+        return "Serveur éteint", 400
 
-# Fonction principale pour gérer un serveur
-def MyServer(SERVER_PORT=5556):
-    global fileAPI
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Crée un socket TCP/IP
-    server_socket.bind((SERVER_HOST, SERVER_PORT))  # Lie le socket à l'adresse et au port spécifiés
-    server_socket.listen(2)  # Met le socket en mode écoute pour les connexions entrantes
-    print(f"# [SERVEUR | {SERVER_PORT}] Serveur prêt")
-    if SERVER_LOG_FILE:
-        file = open(f"logs/server_{SERVER_PORT}.log", "a")  # Ouvre le fichier de log du serveur en mode append
-        file.write(f"# [SERVEUR | {SERVER_PORT}] Serveur prêt [{datetime.datetime.now()}]\n")
-        fileAPI.write(f"        # [API] Serveur démarré sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
+@app.route('/server/<int:code>', methods=['POST'])
+def create(code):
+    if request.method == 'POST':
+        if code in listCodes.keys():
+            return "Code déjà utilisé", 400
+        listCodes[code] = {"status": "wait"}
+        print("---------------------------------")
+        print(f"[API] Code {code} activé")
+        print("---------------------------------")
+        return "Serveur démarré", 200
 
-    # Fonction pour gérer chaque client
-    def handle_client(client_socket, client_address):
-        error = False
-        if SERVER_LOG:
-            print(f"    # [SERVEUR | {SERVER_PORT}] Connexion de {client_address}")
-        if SERVER_LOG_FILE:
-            file.write(f"# [SERVEUR | {SERVER_PORT}] Connexion de {client_address} [{datetime.datetime.now()}]\n")
-        # On envoie aux autres clients la connexion du nouveau client
-        for c in clients:
-            if c != client_socket:
-                try:
-                    c.send(pickle.dumps(f"Connected"))
-                except Exception as e:
-                    continue
+@app.route('/connect/<int:code>/<IP>', methods=['POST'])
+def connect(code, IP):
+    if code not in listCodes.keys():
+        return "Code non valide", 400
+    if IP in listCodes[code]:
+        return "Déjà connecté", 400
+    if len(listCodes[code].keys()) == 3:
+        return "Nombre maximal de joueurs atteint", 400 
+    listCodes[code][IP] = "Connected"
+    if len(listCodes[code].keys()) == 3:
+        for key in listCodes[code].keys():
+            listCodes[code][key] = ["None", time.time()]
+        listCodes[code]["status"] = random.choice(["map1", "map2"])
+    print(f"    [API] {IP} connecté au code {code}")
+    return "Connecté", 200
 
-        while not error:
-            try:
-                data = pickle.loads(client_socket.recv(2**10))
-                if not data:
-                    break
-                if SERVER_LOG:
-                    # print(f"        # [SERVEUR | {SERVER_PORT}] Reçu de {client_address}: {data}")
-                    ...
-                if SERVER_LOG_FILE:
-                    # file.write(f"       # [SERVEUR | {SERVER_PORT}] Reçu de {client_address}: {data} [{datetime.datetime.now()}]\n")
-                    ...
+@app.route('/disconnect/<int:code>/<IP>', methods=['POST'])
+def disconnect(code, IP):
+    if code not in listCodes.keys():
+        return "Code non valide", 400
+    if IP not in listCodes[code]:
+        return "Non connecté", 400
+    del listCodes[code]
+    result = ""
+    for key in listCodes.keys():
+        result += f"{key}, "
+    if result == "":
+        print("---------------------------------")
+        print("[API] Aucun code activé")
+        print("---------------------------------")
+    else:
+        print("---------------------------------")
+        print(f"[API] Liste des codes activés : {result[:-2]}")
+        print("---------------------------------")
+    return "Déconnecté", 200
 
-                for c in clients:
-                    if c != client_socket:
-                        try:
-                            c.send(pickle.dumps(data))
-                        except:
-                            continue
-            except ValueError:
-                clients.remove(client_socket)
-                server_socket.close()
-                return None        
-            except EOFError:
-                clients.remove(client_socket)
-                for c in clients:
-                    if c != client_socket:
-                        try:
-                            c.send(pickle.dumps("Disconnected"))
-                        except Exception as e:
-                            continue
-                server_socket.close()
-                return None
-            except Exception as e:
-                if SERVER_LOG:
-                    print(f"# [SERVEUR | {SERVER_PORT}] Erreur: {e}")
-                if SERVER_LOG_FILE:
-                    file.write(f"# [SERVEUR | {SERVER_PORT}] Erreur: {e} [{datetime.datetime.now()}]\n")
-                for c in clients:
-                    if c != client_socket:
-                        try:
-                            c.send(pickle.dumps("Disconnected"))
-                        except Exception as e:
-                            continue
-                if SERVER_LOG_FILE:
-                    file.write(f"# [SERVEUR | {SERVER_PORT}] Connexion de {client_address} fermée [{datetime.datetime.now()}]\n")
-                clients.remove(client_socket)
-                server_socket.close()
-                return None
+@app.route("/send/<int:code>/<IP>", methods=['POST'])
+def send(code, IP):
+    msg = json.loads(request.json)
+    if code not in listCodes.keys():
+        return "Code non valide", 400
+    if IP not in listCodes[code]:
+        return "Non connecté", 400
+    listCodes[code][IP][0] = list(msg)
+    return "Message envoyé", 200
 
-    clients = []
+@app.route("/status/<int:code>/<IP>", methods=['GET'])
+def statuscode(code, IP):
+    if code not in listCodes.keys():
+        return "Code non valide", 400
+    if IP not in listCodes[code]:
+        return "Non connecté", 400
+    return listCodes[code]["status"], 200
 
-    while True:
-        try:
-            if len(clients) < 3:
-                client_socket, client_address = server_socket.accept()
-                clients.append(client_socket)
-                client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address))
-                client_thread.start()
-            else:
-                continue
-        except Exception as e:
-            print(f"# [SERVEUR | {SERVER_PORT}] Arrêt du serveur")
-            if SERVER_LOG_FILE:
-                file.write(f"# [SERVEUR | {SERVER_PORT}] Arret du serveur [{datetime.datetime.now()}]\n")
-                file.close()
-                fileAPI.write(f"        # [API] Serveur arrete sur le port {SERVER_PORT} [{datetime.datetime.now()}]\n")
-            listPorts.remove(SERVER_PORT)
-            if len(listPorts) == 0:
-                print("---------------------------------")
-                print("[API] Aucun serveur en cours d'utilisation")
-                print("---------------------------------")
-                if API_LOG_FILE:
-                    fileAPI.write(f"# [API] Aucun serveur en cours d'utilisation [{datetime.datetime.now()}]\n")
-                return None
-            resulting = ""
-            for i in listPorts:
-                resulting += str(i) + ", "
-            print("---------------------------------")
-            print(f"[API] Ports utilisés: {resulting[0:-2]}")
-            print("---------------------------------")
-            if API_LOG_FILE:
-                fileAPI.write(f"# [API] Ports utilises: {resulting[0:-2]} [{datetime.datetime.now()}]\n")
-                fileAPI.close()
-                fileAPI = open("logs/api.log", "a")
-            return None
+@app.route("/receive/<int:code>/<IP>", methods=['GET'])
+def receive(code, IP):
+
+    if code not in listCodes.keys():
+        return "Code non valide", 400
+    if IP not in listCodes[code]:
+        return "Non connecté", 400
+    if len(listCodes[code].keys()) < 2:
+        return "Vous êtes seul", 300
+    for key in listCodes[code].keys():
+        if key != IP and key != "status":
+            if time.time() - listCodes[code][key][1] > 5:
+                return "Pas de message", 400
+            return jsonify(listCodes[code][key][0]), 200
+    return "Pas de message", 400
 
 # Point d'entrée du programme
 if __name__ == '__main__':
