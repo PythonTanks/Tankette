@@ -152,7 +152,7 @@ class Game:  # Définition de la classe Game
                 self.screen.blit(self.tanks[0][0].image, self.tanks[0][0].rect)  # Affichage du Tank
                 self.screen.blit(self.tanks[0][1].image, self.tanks[0][1].rect)  # Affichage du TopTank
                 
-                if type(message) != str and message[0] == "ready":
+                if message and type(message) != str and message[0] == "ready":
                     print("[CLIENT] Un adversaire s'est connecté.")
                     self.tanks.append(self.createEnemyTank())
                     wallType = random.choice(["assets/walls/wall1.png", "assets/walls/wall2.png", "assets/walls/wall3.png", "assets/walls/wall4.png"])
@@ -213,9 +213,9 @@ class Game:  # Définition de la classe Game
 
                 if message and type(message) == list and message[0] != "None":
                     # Mise à jour des informations des tanks ennemis
-                    self.tanks[1][0].rect.x = message[0][0]
-                    self.tanks[1][0].rect.y = message[0][1]
-                    self.tanks[1][0].spriteRotate(message[1])
+                    dx = abs(self.tanks[1][0].rect.x - message[0][0]) * (-1 if self.tanks[1][0].rect.x > message[0][0] else 1)
+                    dy = abs(self.tanks[1][0].rect.y - message[0][1]) * (-1 if self.tanks[1][0].rect.y > message[0][1] else 1)
+                    self.tanks[1][0].move(dx, dy, message[1])
                     self.tanks[1][0].rotation = message[1]
                     self.tanks[1][1].rotate_with_angle(message[2])
                     self.tanks[1][0].all_projectiles.empty()  # Effacement des projectiles existants

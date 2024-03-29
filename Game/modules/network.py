@@ -2,6 +2,11 @@ import requests  # Permet de faire des requêtes HTTP
 import random  # Permet de générer des nombres aléatoires
 import time  # Permet de gérer le temps
 import json  # Permet de manipuler des objets JSON
+import socket
+
+hostname = socket.gethostname()
+IPAddrLoc = socket.gethostbyname(hostname)
+
 
 IDUNIQUE = random.randint(10000000, 100000000)  # Génère un identifiant unique pour le client
 IPAddr = IDUNIQUE
@@ -35,7 +40,7 @@ def get_map():
 def receive_messages(SERVER_PORT, SERVER_HOST):
     global last_time_received
     global status
-    if time.time() - last_time_received > 0.2:
+    if (time.time() - last_time_received > 0.2) or (SERVER_HOST == IPAddrLoc):
         last_time_received = time.time()
         if status == "wait":
                 response = requests.get(f"http://{SERVER_HOST}:5555/status/{SERVER_PORT}/{IPAddr}")
@@ -75,7 +80,7 @@ def receive_messages(SERVER_PORT, SERVER_HOST):
 def send_message(data, SERVER_PORT, SERVER_HOST):
     global last_time_send
     global last_data
-    if time.time() - last_time_send > 0.2:
+    if (time.time() - last_time_send > 0.2) or (SERVER_HOST == IPAddrLoc):
         last_time_send = time.time()
         if data != last_data:
             last_data = data

@@ -55,6 +55,26 @@ class GameObject(pygame.sprite.Sprite):
     def get_Sprite(self):
         return self.image
     
+    def get_direction(self, image):
+        if image == self.image_right:
+            return "droite"
+        elif image == self.image_left:
+            return "gauche"
+        elif image == self.image_up:
+            return "haut"
+        elif image == self.image_down:
+            return "bas"
+        elif image == self.image_up_right:
+            return "haut_droit"
+        elif image == self.image_up_left:
+            return "haut_gauche"
+        elif image == self.image_down_right:
+            return "bas_droit"
+        elif image == self.image_down_left:
+            return "bas_gauche"
+        else:
+            return "custom"
+    
         # Méthode pour faire tourner l'image de l'objet
     def spriteRotate(self, rotate):
         rectCenter = self.rect.center

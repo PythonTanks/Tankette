@@ -59,28 +59,24 @@ class Tank(Movable):
             # Gestion des mouvements en diagonale
             if keys[pygame.key.key_code(up_key)] and keys[pygame.key.key_code(right_key)]:
                 # Rotation et déplacement du tank vers le haut et la droite
-                self.image = pygame.transform.rotate(self.image, -45)
                 dx += self.velocity
                 dy -= self.velocity
                 self.move(dx, dy, "haut_droit")
                 self.rotation = "haut_droit"
             elif keys[pygame.key.key_code(down_key)] and keys[pygame.key.key_code(right_key)]:
                 # Rotation et déplacement du tank vers le bas et la droite
-                self.image = pygame.transform.rotate(self.image, -135)
                 dx += self.velocity
                 dy += self.velocity
                 self.move(dx, dy, "bas_droit")
                 self.rotation = "bas_droit"
             elif keys[pygame.key.key_code(down_key)] and keys[pygame.key.key_code(left_key)]:
                 # Rotation et déplacement du tank vers le haut et la gauche
-                self.image = pygame.transform.rotate(self.image, 45)
                 dx -= self.velocity
                 dy -= self.velocity
                 self.move(dx, dy, "haut_gauche")
                 self.rotation = "haut_gauche"
             elif keys[pygame.key.key_code(up_key)] and keys[pygame.key.key_code(left_key)]:
                 # Rotation et déplacement du tank vers le bas et la gauche
-                self.image = pygame.transform.rotate(self.image, 135)
                 dx -= self.velocity
                 dy += self.velocity
                 self.move(dx, dy, "bas_gauche")
@@ -88,25 +84,21 @@ class Tank(Movable):
             # Gestion des mouvements sans diagonale
             elif keys[pygame.key.key_code(right_key)]:
                 # Rotation et déplacement du tank vers la droite
-                self.image = pygame.transform.rotate(self.image, -90)
                 dx += self.velocity
                 self.move(dx, dy, "droite")
                 self.rotation = "droite"
             elif keys[pygame.key.key_code(left_key)]:
                 # Rotation et déplacement du tank vers la gauche
-                self.image = pygame.transform.rotate(self.image, 90)
                 dx -= self.velocity
                 self.move(dx, dy, "gauche")
                 self.rotation = "gauche"
             elif keys[pygame.key.key_code(up_key)]:
                 # Rotation et déplacement du tank vers le haut
-                self.image = pygame.transform.rotate(self.image, 0)
                 dy -= self.velocity
                 self.move(dx, dy, "haut")
                 self.rotation = "haut"
             elif keys[pygame.key.key_code(down_key)]:
                 # Rotation et déplacement du tank vers le bas
-                self.image = pygame.transform.rotate(self.image, 180)
                 dy += self.velocity
                 self.move(dx, dy, "bas")
                 self.rotation = "bas"
@@ -115,25 +107,21 @@ class Tank(Movable):
             # Gestion des mouvements sans diagonale
             if keys[pygame.key.key_code(right_key)]:
                 # Rotation et déplacement du tank vers la droite
-                self.image = pygame.transform.rotate(self.image, -90)
                 dx += self.velocity
                 self.move(dx, dy, "droite")
                 self.rotation = "droite"
             elif keys[pygame.key.key_code(left_key)]:
                 # Rotation et déplacement du tank vers la gauche
-                self.image = pygame.transform.rotate(self.image, 90)
                 dx -= self.velocity
                 self.move(dx, dy, "gauche")
                 self.rotation = "gauche"
             elif keys[pygame.key.key_code(up_key)]:
                 # Rotation et déplacement du tank vers le haut
-                self.image = pygame.transform.rotate(self.image, 0)
                 dy -= self.velocity
                 self.move(dx, dy, "haut")
                 self.rotation = "haut"
             elif keys[pygame.key.key_code(down_key)]:
                 # Rotation et déplacement du tank vers le bas
-                self.image = pygame.transform.rotate(self.image, 180)
                 dy += self.velocity
                 self.move(dx, dy, "bas")
                 self.rotation = "bas"

@@ -34,8 +34,9 @@ class Movable(GameObject):
                 # Si on obtient False, on déplace l'objet
                 self.rect.x += dx
                 self.rect.y += dy
-                # On met à jour l'image de l'objet
-                self.spriteRotate(rotate)
+                # On met à jour l'image de l'obje
+                if self.get_direction(self.image) != rotate:
+                    self.spriteRotate(rotate)
         
             
             

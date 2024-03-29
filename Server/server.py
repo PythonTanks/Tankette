@@ -133,6 +133,7 @@ def receive(code, IP):
 
 # Point d'entrée du programme
 if __name__ == '__main__':
+    SERVER_HOST = socket.gethostbyname(socket.gethostname())
     print("---------------------------------")
     print(f"[API] Serveur API démarré à l'adresse http://{SERVER_HOST}:5555")
     print("---------------------------------")
