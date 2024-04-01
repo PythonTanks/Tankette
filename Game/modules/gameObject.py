@@ -41,11 +41,8 @@ class GameObject(pygame.sprite.Sprite):
 
     # Méthode pour définir la position de l'objet
     def set_position(self, position):
-        if position[0] < 0 or position[0] > self.game.width or position[1] < 0 or position[1] > self.game.height:
-            self.rect.x = position[0]
-            self.rect.y = position[1]
-        #else:
-            #raise ValueError("La position spécifiée est en dehors des limites de l'écran.")
+        self.rect.x = position[0]
+        self.rect.y = position[1]
 
     # Méthode pour obtenir la hitbox (rectangle englobant) de l'objet
     def get_hitbox(self):
@@ -54,6 +51,26 @@ class GameObject(pygame.sprite.Sprite):
     # Méthode pour obtenir l'image de l'objet (utilisée pour le dessin)
     def get_Sprite(self):
         return self.image
+    
+    def get_direction(self, image):
+        if image == self.image_right:
+            return "droite"
+        elif image == self.image_left:
+            return "gauche"
+        elif image == self.image_up:
+            return "haut"
+        elif image == self.image_down:
+            return "bas"
+        elif image == self.image_up_right:
+            return "haut_droit"
+        elif image == self.image_up_left:
+            return "haut_gauche"
+        elif image == self.image_down_right:
+            return "bas_droit"
+        elif image == self.image_down_left:
+            return "bas_gauche"
+        else:
+            return "custom"
     
         # Méthode pour faire tourner l'image de l'objet
     def spriteRotate(self, rotate):

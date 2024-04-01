@@ -2,7 +2,7 @@ import math
 from modules.movable import Movable  # Importation de la classe parente Movable
 
 class Bullet(Movable):
-    def __init__(self, game, velocity=20, angle=0, start=(0, 0), max_bounce=3):
+    def __init__(self, game, id, velocity=20, angle=0, start=(0, 0), max_bounce=3):
         self.angle = angle
         self.max_bounce = max_bounce
         # Appel du constructeur de la classe parente (Movable)
@@ -20,6 +20,8 @@ class Bullet(Movable):
         self.game = game
 
         self.rebond = 0
+        
+        self.id = id
         
         self.cos_angle = math.cos(math.radians(angle))
         self.sin_angle = math.sin(math.radians(angle))

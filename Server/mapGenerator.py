@@ -1,0 +1,69 @@
+import random
+
+def generate_map(min_walls = 25, max_walls = 35):
+    # Chargement du modèle de carte depuis le fichier mapSkeleton
+    with open('mapSkeleton.txt', 'r') as file:
+        map_skeleton = [list(line.strip()) for line in file]
+
+    # Fonction pour compter le nombre de murs adjacents à une position (i, j)
+    def count_adjacent_walls(i, j):
+        count = 0
+        for x_offset, y_offset in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            new_i, new_j = i + x_offset, j + y_offset
+            if 0 <= new_i < len(map_skeleton) and 0 <= new_j < len(map_skeleton[0]):
+                if map_skeleton[new_i][new_j] == '|':
+                    count += 1
+        return count
+
+    # Liste pour stocker les positions où des murs peuvent être ajoutés
+    available_positions = []
+
+    # Récupération des positions des cases vides pour les futurs murs
+    for i in range(len(map_skeleton)):
+        for j in range(len(map_skeleton[0])):
+            if map_skeleton[i][j] == '-':
+                available_positions.append((i, j))
+
+    # Ajout de murs jusqu'à atteindre le nombre minimum de murs requis
+    random.shuffle(available_positions)
+    for _ in range(min(min_walls, len(available_positions))):
+        i, j = available_positions.pop()
+        map_skeleton[i][j] = '|'
+
+    # Calcul des probabilités pour placer des murs et des espaces vides
+    for i in range(len(map_skeleton)):
+        for j in range(len(map_skeleton[0])):
+            if map_skeleton[i][j] == '-':
+                # Plus probable de placer des murs si près d'autres murs
+                if random.random() < 0.6 * count_adjacent_walls(i, j) / 4:
+                    map_skeleton[i][j] = '|'
+                # Plus probable de placer des espaces vides sur les bords
+                elif i == 0 or i == len(map_skeleton) - 1 or j == 0 or j == len(map_skeleton[0]) - 1:
+                    if random.random() < 0.7:
+                        map_skeleton[i][j] = '-'
+
+    # Ajout de murs jusqu'au nombre maximum de murs autorisé
+    random.shuffle(available_positions)
+    for _ in range(max(0, min(max_walls - min_walls, len(available_positions)))):
+        i, j = available_positions.pop()
+        map_skeleton[i][j] = '|'
+
+    return map_skeleton
+            
+
+def saveMap(map: list, filename: str):
+    with open(filename, "w") as file:
+        for line in map:
+            for element in line:
+                file.write(element)
+            file.write("\n")
+    
+            
+def tableauToString(map: list):
+    return "\n".join("".join(line) for line in map)
+
+if __name__ == "__main__":
+    map = generate_map()
+    id = random.randint(1000000, 10000000)
+    saveMap(map, f"maps/map{id}.txt")
+    

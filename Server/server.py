@@ -12,6 +12,7 @@ import yaml # Importation de la bibliothèque PyYAML pour lire le fichier de con
 import json # Importation de la bibliothèque JSON pour manipuler des objets JSON
 import random # Importation de la bibliothèque random pour générer des nombres aléatoires
 import time # Importation de la bibliothèque time pour manipuler le temps
+import mapGenerator # Importation du module mapGenerator pour générer des maps aléatoires
 
 # Configuration du serveur Flask
 app = Flask("TanketteServer")  # Crée une instance de Flask nommée "TanketteServer"
@@ -74,8 +75,8 @@ def connect(code, IP):
     listCodes[code][IP] = "Connected"
     if len(listCodes[code].keys()) == 3:
         for key in listCodes[code].keys():
-            listCodes[code][key] = ["None", time.time()]
-        listCodes[code]["status"] = random.choice(["map1", "map2"])
+            listCodes[code][key] = "None"
+        listCodes[code]["status"] = mapGenerator.generate_map()
     print(f"    [API] {IP} connecté au code {code}")
     return "Connecté", 200
 
@@ -106,7 +107,7 @@ def send(code, IP):
         return "Code non valide", 400
     if IP not in listCodes[code]:
         return "Non connecté", 400
-    listCodes[code][IP][0] = list(msg)
+    listCodes[code][IP] = list(msg)
     return "Message envoyé", 200
 
 @app.route("/status/<int:code>/<IP>", methods=['GET'])
@@ -115,7 +116,7 @@ def statuscode(code, IP):
         return "Code non valide", 400
     if IP not in listCodes[code]:
         return "Non connecté", 400
-    return listCodes[code]["status"], 200
+    return jsonify(listCodes[code]["status"]), 200
 
 @app.route("/receive/<int:code>/<IP>", methods=['GET'])
 def receive(code, IP):
@@ -128,13 +129,12 @@ def receive(code, IP):
         return "Vous êtes seul", 300
     for key in listCodes[code].keys():
         if key != IP and key != "status":
-            if time.time() - listCodes[code][key][1] > 5:
-                return "Pas de message", 400
-            return jsonify(listCodes[code][key][0]), 200
+            return jsonify(listCodes[code][key]), 200
     return "Pas de message", 400
 
 # Point d'entrée du programme
 if __name__ == '__main__':
+    SERVER_HOST = socket.gethostbyname(socket.gethostname())
     print("---------------------------------")
     print(f"[API] Serveur API démarré à l'adresse http://{SERVER_HOST}:5555")
     print("---------------------------------")
