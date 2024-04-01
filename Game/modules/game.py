@@ -64,6 +64,10 @@ class Game:  # Définition de la classe Game
 
         self.waiting = False
         
+        self.win = None
+        
+        self.affichFin = False
+        
     def setPygame(self):
         pygame.init()  # Initialisation de Pygame
         pygame.display.set_caption(self.title)  # Définition du titre de la fenêtre
@@ -182,8 +186,11 @@ class Game:  # Définition de la classe Game
             if self.in_main_menu:
                 self.mainmenuScreen()  # Affichage de l'écran du menu principal
                 self.in_main_menu = False  # Changement du statut du menu
+                
+            if self.win != None:
+                self.AffichageFin()
 
-            if self.waiting:
+            if self.affichFin and self.waiting:
                 self.screen.blit(self.waiting_text, (self.width/2 - self.wainting_text.get_width()/2, 70))
             
             pygame.display.update()  # Mise à jour de l'affichage
@@ -201,6 +208,10 @@ class Game:  # Définition de la classe Game
                 self.debugScreen(pygame.mouse.get_pos())  # Affichage des informations de débogage
             
             if self.in_game and len(self.tanks) > 1:
+                
+                if self.tanks[0][0].life <= 0 or self.win == False:
+                    self.win = False
+                    self.screen
 
                 if self.pause:
                     self.pauseMenu()  # Affichage du menu de pause
@@ -208,7 +219,8 @@ class Game:  # Définition de la classe Game
                 
                 if not self.pause and not self.waiting:
                     # Gestion des entrées utilisateur
-                    self.tanks[0][0].handle_input(self.controls["up_key"], self.controls["down_key"], self.controls["left_key"], self.controls["right_key"], self.controls["shoot_key"])
+                    if self.win == None:
+                        self.tanks[0][0].handle_input(self.controls["up_key"], self.controls["down_key"], self.controls["left_key"], self.controls["right_key"], self.controls["shoot_key"])
                     self.tanks[0][1].rotate()  # Rotation du TopTank
 
                 if message and type(message) == list and message[0] != "None":
@@ -247,6 +259,30 @@ class Game:  # Définition de la classe Game
                     data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
                     if data != None:
                         send_message(data, self.port, self.ip)
+                        
+                if self.tanks[0][0].life <= 0 or self.tanks[1][0].life <= 0:
+                    if self.tanks[0][0].life <= 0:
+                        self.win = False
+                        for tank in self.tanks:
+                            for bullet in tank[0].all_projectiles:
+                                bullet.kill()
+                        # On retire le tank qui a perdu
+                        tank = self.tanks.pop(0)
+                        tank[0].kill()
+                        tank[1].kill()
+                        pygame.display.update()  # Mise à jour de l'affichage
+                        
+                    else:
+                        self.win = True
+                        for tank in self.tanks:
+                            for bullet in tank[0].all_projectiles:
+                                bullet.kill()
+                        # On retire le tank qui a perdu
+                        tank = self.tanks.pop(1)
+                        tank[0].kill()
+                        tank[1].kill()
+                        pygame.display.update()  # Mise à jour de l'affichage
+                    self.affichFin = True
 
             
             # Gestion des événements
@@ -264,6 +300,41 @@ class Game:  # Définition de la classe Game
                     self.in_main_menu = True
                 else:
                     self.pause = not self.pause
+                    
+    def AffichageFin(self):
+        while self.win != None:
+            finishCon = False
+            # En fonction du résultat de la partie, on affiche un message différent et on met un bouton revenir au menu
+            if self.win:
+                self.screen.blit(self.largefont.render("Victoire !" , True , (255,255,255)), (self.width/2 - 200, 50))
+                if self.connected:
+                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, 0, self.pause]
+                    if data != None:
+                        send_message(data, self.port, self.ip)
+            else:
+                self.screen.blit(self.largefont.render("Défaite !" , True , (255,255,255)), (self.width/2 - 200, 50))
+                if self.connected:
+                    if not finishCon:
+                        message = receive_messages(self.port, self.ip)
+                        if message == "Finish":
+                            print("[CLIENT] Déconnexion du serveur.")
+                            finishCon = True
+                        else:
+                            self.tanks[0][1].rotate_with_angle(message[2])
+            pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,490,150,40])
+            self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 500))
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 490 <= event.pos[1] <= 530:
+                            self.finish()
+                            self.in_main_menu = True
+                            self.win = None
+                            self.AffichageFin = False
+                            return None
+                elif event.type == pygame.QUIT:
+                    self.stopGame()  # Arrêt du jeu
     
         # Méthode pour afficher des informations de débogage à l'écran
     def debugScreen(self, info, x=10, y=10):
