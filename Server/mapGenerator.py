@@ -1,6 +1,7 @@
 import random
 
-def generate_map(min_walls = 25, max_walls = 35):
+def generate_map(min_walls = 20, max_walls = 25):
+    max_walls = random.randint(min_walls, max_walls)
     # Chargement du modèle de carte depuis le fichier mapSkeleton
     with open('mapSkeleton.txt', 'r') as file:
         map_skeleton = [list(line.strip()) for line in file]
@@ -47,6 +48,25 @@ def generate_map(min_walls = 25, max_walls = 35):
     for _ in range(max(0, min(max_walls - min_walls, len(available_positions)))):
         i, j = available_positions.pop()
         map_skeleton[i][j] = '|'
+        
+    # On compte le nombre de murs sur la carte
+    wall_count = sum(line.count('|') for line in map_skeleton)
+    # S'il y a trop de murs, on enlève d'abord les murs les plus isolés, puis on enlève des murs aléatoirement
+    while wall_count > max_walls:
+        isolated_walls = []
+        for i in range(len(map_skeleton)):
+            for j in range(len(map_skeleton[0])):
+                if map_skeleton[i][j] == '|':
+                    if count_adjacent_walls(i, j) == 0:
+                        isolated_walls.append((i, j))
+        if isolated_walls:
+            i, j = isolated_walls.pop()
+            map_skeleton[i][j] = '-'
+            wall_count -= 1
+        else:
+            i, j = random.choice([(i, j) for i in range(len(map_skeleton)) for j in range(len(map_skeleton[0])) if map_skeleton[i][j] == '|'])
+            map_skeleton[i][j] = '-'
+            wall_count -= 1
 
     return map_skeleton
             
