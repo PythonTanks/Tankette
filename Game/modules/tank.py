@@ -1,5 +1,6 @@
 import pygame  # Bibliothèque pour le développement de jeux vidéo
 import time  # Fournit des fonctions pour manipuler le temps
+import random  # Fournit des fonctions pour générer des nombres aléatoires
 from modules.movable import Movable  # Importe la classe Movable du module movable
 from modules.bullet import Bullet  # Importe la classe Bullet du module bullet
 
@@ -25,28 +26,47 @@ class Tank(Movable):
     # Méthode pour lancer un projectile
     def launch_projectile(self, angle, start):
         # Ajoute un nouveau projectile au groupe de projectiles
-        self.all_projectiles.add(Bullet(self.game, angle=angle, start=start))
+        self.all_projectiles.add(Bullet(self.game, random.randint(1000000000, 10000000000), angle=angle, start=start))
         
     def life_bar(self):
         # Dessine la barre de vie du tank
         myrect = pygame.Rect(0, 0, 110, 20)
         myrect.center = self.rect.center
         myrect.y = self.rect.y - 25
-        pygame.draw.rect(self.game.screen, (0, 0, 0), myrect)
-        if self.rotation == "haut" or self.rotation == "bas":
-            if self.life <= 30:
-                pygame.draw.rect(self.game.screen, (255, 0, 0), [myrect.left+5, myrect.top+5, self.life, 10])
-            elif self.life <= 60:
-                pygame.draw.rect(self.game.screen, (255, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+        if myrect.top < 0:
+            myrect.y = self.rect.bottom + 5
+            pygame.draw.rect(self.game.screen, (0, 0, 0), myrect)
+            if self.rotation == "haut" or self.rotation == "bas":
+                if self.life <= 30:
+                    pygame.draw.rect(self.game.screen, (255, 0, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                elif self.life <= 60:
+                    pygame.draw.rect(self.game.screen, (255, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                else:
+                    pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
             else:
-                pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                if self.life <= 30:
+                    pygame.draw.rect(self.game.screen, (255, 0, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                elif self.life <= 60:
+                    pygame.draw.rect(self.game.screen, (255, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                else:
+                    pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
         else:
-            if self.life <= 30:
-                pygame.draw.rect(self.game.screen, (255, 0, 0), [myrect.left+5, myrect.top+5, self.life, 10])
-            elif self.life <= 60:
-                pygame.draw.rect(self.game.screen, (255, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+            pygame.draw.rect(self.game.screen, (0, 0, 0), myrect)
+            if self.rotation == "haut" or self.rotation == "bas":
+                if self.life <= 30:
+                    pygame.draw.rect(self.game.screen, (255, 0, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                elif self.life <= 60:
+                    pygame.draw.rect(self.game.screen, (255, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                else:
+                    pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
             else:
-                pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                if self.life <= 30:
+                    pygame.draw.rect(self.game.screen, (255, 0, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                elif self.life <= 60:
+                    pygame.draw.rect(self.game.screen, (255, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+                else:
+                    pygame.draw.rect(self.game.screen, (0, 255, 0), [myrect.left+5, myrect.top+5, self.life, 10])
+        
 
     # Méthode pour gérer les entrées de l'utilisateur
     def handle_input(self, up_key, down_key, left_key, right_key, shoot_key):
