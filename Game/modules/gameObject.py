@@ -41,11 +41,8 @@ class GameObject(pygame.sprite.Sprite):
 
     # Méthode pour définir la position de l'objet
     def set_position(self, position):
-        if position[0] < 0 or position[0] > self.game.width or position[1] < 0 or position[1] > self.game.height:
-            self.rect.x = position[0]
-            self.rect.y = position[1]
-        #else:
-            #raise ValueError("La position spécifiée est en dehors des limites de l'écran.")
+        self.rect.x = position[0]
+        self.rect.y = position[1]
 
     # Méthode pour obtenir la hitbox (rectangle englobant) de l'objet
     def get_hitbox(self):

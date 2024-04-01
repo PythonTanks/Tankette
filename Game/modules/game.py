@@ -213,14 +213,27 @@ class Game:  # Définition de la classe Game
 
                 if message and type(message) == list and message[0] != "None":
                     # Mise à jour des informations des tanks ennemis
-                    dx = abs(self.tanks[1][0].rect.x - message[0][0]) * (-1 if self.tanks[1][0].rect.x > message[0][0] else 1)
-                    dy = abs(self.tanks[1][0].rect.y - message[0][1]) * (-1 if self.tanks[1][0].rect.y > message[0][1] else 1)
-                    self.tanks[1][0].move(dx, dy, message[1])
-                    self.tanks[1][0].rotation = message[1]
+                    if self.tanks[1][0].rect.x != message[0][0] or self.tanks[1][0].rect.y != message[0][1]:
+                        self.tanks[1][0].set_position(message[0])
+                        self.tanks[1][0].spriteRotate(message[1])
+                        self.tanks[1][0].rotation = message[1]
                     self.tanks[1][1].rotate_with_angle(message[2])
-                    self.tanks[1][0].all_projectiles.empty()  # Effacement des projectiles existants
                     for projectile in message[3]:  # Création des nouveaux projectiles
-                        self.tanks[1][0].all_projectiles.add(Bullet(self, angle=projectile["angle"], start=projectile["position"]))
+                        if projectile["id"] not in [bullet.id for bullet in self.tanks[1][0].all_projectiles]:
+                            self.tanks[1][0].all_projectiles.add(Bullet(self, projectile["id"], angle=projectile["angle"], start=projectile["position"]))
+                    for bullet in self.tanks[1][0].all_projectiles:
+                        if bullet.id not in [projectile["id"] for projectile in message[3]]:
+                            bullet.kill()
+                    # On modifie les positions des projectiles existants si elles ne correspondent pas
+                    for bullet in self.tanks[1][0].all_projectiles:
+                        for projectile in message[3]:
+                            if bullet.id == projectile["id"]:
+                                if bullet.rect.x != projectile["position"][0] or bullet.rect.y != projectile["position"][1] or bullet.angle != projectile["angle"]:
+                                    bullet.rect.x = projectile["position"][0]
+                                    bullet.rect.y = projectile["position"][1]
+                                    bullet.angle = projectile["angle"]
+                                    bullet.newAngle(bullet.angle)
+                                    bullet.spriteRotate(bullet.image_custom)
                     self.tanks[1][0].life = min(message[4], self.tanks[1][0].life)  # Mise à jour des points de vie du tank ennemi
                     self.tanks[0][0].life = min(message[5], self.tanks[0][0].life)   # Mise à jour des points de vie du tank ennemi
                     self.waiting = message[6]
@@ -231,7 +244,7 @@ class Game:  # Définition de la classe Game
                 # Envoi des données au serveur
                 if self.connected:
                     # Préparation des données à envoyer au serveur
-                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
+                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
                     if data != None:
                         send_message(data, self.port, self.ip)
 
@@ -519,7 +532,7 @@ class Game:  # Définition de la classe Game
                                     is_open = False
                                     self.is_running = True
                                     self.status = "ingame"
-                                    self.tanks = [self.createMyTank(position = ((self.width - 200) / 2, (self.height - 200) / 2), direction="gauche", angle=135.), self.createEnemyTank(position=(100, 100), direction="droite", angle=0)]
+                                    self.tanks = [self.createMyTank(position = (int((self.width - 265) / 2), int((self.height - 230) / 2)), direction="gauche", angle=135.), self.createEnemyTank(position=(125, 125), direction="droite", angle=0)]
                                     self.in_game = True
                                     error1 = False
                                     error2 = False
@@ -609,13 +622,13 @@ class Game:  # Définition de la classe Game
         print("Game stopped")  # Message d'arrêt du jeu
         return None
     
-    def createMyTank(self, position=(100, 100), direction="droite", angle=0):
+    def createMyTank(self, position=(125, 125), direction="droite", angle=0):
         tank = Tank(self, initial_position=position, rotation=direction)
         return (tank, TopTank(self, tank, angle=angle))
     
     def createEnemyTank(self, position=(-1, -1), direction="droite", angle=135.):
         if position == (-1, -1):
-            position = ((self.width - 200) / 2, (self.height - 200) / 2)
+            position = (int((self.width - 265) / 2), int((self.height - 230) / 2))
         tank = Tank(self, initial_position=position, rotation=direction, image_path="assets/tank2.png")
         return (tank, TopTank(self, tank, angle=angle, image_path="assets/toptank2.png"))
     
@@ -647,5 +660,5 @@ class Game:  # Définition de la classe Game
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 290 <= event.pos[1] <= 330:
                             self.pause = False
                         elif self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 340 <= event.pos[1] <= 380:
-                            self.finish()
+                            self.in_main_menu = True
                             self.pause = False

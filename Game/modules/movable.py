@@ -45,21 +45,56 @@ class Movable(GameObject):
         fx = self.rect.x + dx
         fy = self.rect.y + dy
         # On crée un rectangle à la position du tank
-        future_rect = pygame.Rect(fx, fy, max(self.rect.width, self.rect.height), max(self.rect.width, self.rect.height))
+        future_rect = pygame.Rect(fx, fy, self.rect.width, self.rect.height)
         # On vérifie si le tank touche un autre tank
         for tank in self.game.tanks:
             if tank[0] != self and future_rect.colliderect(tank[0].rect):
                 # On retourne True pour indiquer qu'il y a eu une collision
-                return True
-        # On vérifie si le tank touche les bords de l'écran
-        if self.rect.x < 0 or self.rect.x > self.game.width - self.rect.width or self.rect.y < 0 or self.rect.y > self.game.height - self.rect.height:
-            # On retourne True pour indiquer qu'il y a eu une collision
-            return True
+                return True            
         # On vérifie si le tank touche un mur
         for wall in self.game.walls:
             if future_rect.colliderect(wall.rect):
-                # On retourne True pour indiquer qu'il y a eu une collision
-                return True
+                # On cherche le côté du mur qui a été touché
+                rect_center = wall.rect.center
+                # On calcule la distance entre le centre du mur et le centre de chaque coté du tank
+                minDist = Distance(rect_center[0], rect_center[1], self.rect.midtop[0], self.rect.midtop[1])
+                side = "top"
+                if Distance(rect_center[0], rect_center[1], self.rect.midleft[0], self.rect.midleft[1]) < minDist:
+                    minDist = Distance(rect_center[0], rect_center[1], self.rect.midleft[0], self.rect.midleft[1])
+                    side = "left"
+                if Distance(rect_center[0], rect_center[1], self.rect.midright[0], self.rect.midright[1]) < minDist:
+                    minDist = Distance(rect_center[0], rect_center[1], self.rect.midright[0], self.rect.midright[1])
+                    side = "right"
+                if Distance(rect_center[0], rect_center[1], self.rect.midbottom[0], self.rect.midbottom[1]) < minDist:
+                    minDist = Distance(rect_center[0], rect_center[1], self.rect.midbottom[0], self.rect.midbottom[1])
+                    side = "bottom"
+                # On vérifie le déplacement du tank
+                if side == "top":
+                    if dy < 0:
+                        return True
+                if side == "bottom":
+                    if dy > 0:
+                        return True
+                if side == "left":
+                    if dx < 0:
+                        return True
+                if side == "right":
+                    if dx > 0:
+                        return True
+        # On vérifie si le tank touche un bord de l'écran, de la même manière que pour les murs
+        if self.rect.x + dx < 0 or self.rect.x + dx > self.game.width - self.rect.width or self.rect.y + dy < 0 or self.rect.y + dy > self.game.height - self.rect.height:
+            if self.rect.x + dx < 0:
+                if dx < 0:
+                    return True
+            if self.rect.x + dx > self.game.width - self.rect.width:
+                if dx > 0:
+                    return True
+            if self.rect.y + dy < 0:
+                if dy < 0:
+                    return True
+            if self.rect.y + dy > self.game.height - self.rect.height:
+                if dy > 0:
+                    return True
         # On retourne False pour indiquer qu'il n'y a pas eu de collision car le tank à passer tous les tests
         return False
     
