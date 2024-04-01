@@ -45,11 +45,11 @@ def receive_messages(SERVER_PORT, SERVER_HOST):
         if status == "wait":
                 response = requests.get(f"http://{SERVER_HOST}:5555/status/{SERVER_PORT}/{IPAddr}")
                 if response.status_code == 200:
-                    if response.text != "wait":
-                        status = response.text[-4:]
+                    if json.loads(response.text) != "wait":
+                        status = json.loads(response.text)
                         if debug:
-                            print(f"[CLIENT] Status : {status}")
-                            print("[CLIENT] Status reçu du serveur.")
+                            print(f"[CLIENT] Map : {status}")
+                            print("[CLIENT] Map reçu du serveur.")
                         return ("ready", status)
                     else:
                         return "wait"

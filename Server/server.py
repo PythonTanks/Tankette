@@ -12,6 +12,7 @@ import yaml # Importation de la bibliothèque PyYAML pour lire le fichier de con
 import json # Importation de la bibliothèque JSON pour manipuler des objets JSON
 import random # Importation de la bibliothèque random pour générer des nombres aléatoires
 import time # Importation de la bibliothèque time pour manipuler le temps
+import mapGenerator # Importation du module mapGenerator pour générer des maps aléatoires
 
 # Configuration du serveur Flask
 app = Flask("TanketteServer")  # Crée une instance de Flask nommée "TanketteServer"
@@ -75,7 +76,7 @@ def connect(code, IP):
     if len(listCodes[code].keys()) == 3:
         for key in listCodes[code].keys():
             listCodes[code][key] = "None"
-        listCodes[code]["status"] = random.choice(["map1", "map2"])
+        listCodes[code]["status"] = mapGenerator.generate_map()
     print(f"    [API] {IP} connecté au code {code}")
     return "Connecté", 200
 
@@ -115,7 +116,7 @@ def statuscode(code, IP):
         return "Code non valide", 400
     if IP not in listCodes[code]:
         return "Non connecté", 400
-    return listCodes[code]["status"], 200
+    return jsonify(listCodes[code]["status"]), 200
 
 @app.route("/receive/<int:code>/<IP>", methods=['GET'])
 def receive(code, IP):
