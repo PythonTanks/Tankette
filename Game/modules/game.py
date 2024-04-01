@@ -110,6 +110,10 @@ class Game:  # Définition de la classe Game
         self.error1_surface = self.smallfont.render("Le serveur est plein !" , True , (255,64,64))  # Création d'une surface de texte
         self.error2_surface = self.smallfont.render("Le serveur n'éxiste pas !" , True , (255,64,64))  # Création d'une surface de texte
         self.error3_surface = self.smallfont.render("Une erreur est survenue." , True , (255,64,64))  # Création d'une surface de texte
+        
+        # Initialisation des polices de caractères (texte de fin de partie)
+        self.win_text = self.largefont.render("Victoire !" , True , (255,255,255))  # Création d'une surface de texte
+        self.loose_text = self.largefont.render("Défaite !" , True , (255,255,255))  # Création d'une surface de texte
     
     def finish(self):
         close_connection(self.port, self.ip)  # Fermeture de la connexion
@@ -151,7 +155,8 @@ class Game:  # Définition de la classe Game
             
             if self.in_game and len(self.tanks) == 1:
                 
-                self.screen.blit(self.wainting_text, (self.width/2 - self.wainting_text.get_width()/2, 70))  # Affichage du titre
+                if not self.affichFin:
+                    self.screen.blit(self.wainting_text, (self.width/2 - self.wainting_text.get_width()/2, 70))  # Affichage du titre
                 
                 self.screen.blit(self.tanks[0][0].image, self.tanks[0][0].rect)  # Affichage du Tank
                 self.screen.blit(self.tanks[0][1].image, self.tanks[0][1].rect)  # Affichage du TopTank
@@ -190,7 +195,7 @@ class Game:  # Définition de la classe Game
             if self.win != None:
                 self.AffichageFin()
 
-            if self.affichFin and self.waiting:
+            if not self.affichFin and self.waiting:
                 self.screen.blit(self.waiting_text, (self.width/2 - self.wainting_text.get_width()/2, 70))
             
             pygame.display.update()  # Mise à jour de l'affichage
@@ -306,13 +311,13 @@ class Game:  # Définition de la classe Game
             finishCon = False
             # En fonction du résultat de la partie, on affiche un message différent et on met un bouton revenir au menu
             if self.win:
-                self.screen.blit(self.largefont.render("Victoire !" , True , (255,255,255)), (self.width/2 - 200, 50))
+                self.screen.blit(self.win_text, (self.width/2 - self.win_text.get_width()/2, 50))
                 if self.connected:
                     data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, 0, self.pause]
                     if data != None:
                         send_message(data, self.port, self.ip)
             else:
-                self.screen.blit(self.largefont.render("Défaite !" , True , (255,255,255)), (self.width/2 - 200, 50))
+                self.screen.blit(self.loose_text, (self.width/2 - self.loose_text.get_width()/2, 50))
                 if self.connected:
                     if not finishCon:
                         message = receive_messages(self.port, self.ip)
