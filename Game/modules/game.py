@@ -312,24 +312,6 @@ class Game:  # Définition de la classe Game
                     
     def AffichageFin(self):
         while self.win != None:
-            finishCon = False
-            # En fonction du résultat de la partie, on affiche un message différent et on met un bouton revenir au menu
-            if self.win:
-                self.screen.blit(self.win_text, (self.width/2 - self.win_text.get_width()/2, 50))
-                if self.connected:
-                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, 0, self.pause]
-                    if data != None:
-                        send_message(data, self.port, self.ip)
-            else:
-                self.screen.blit(self.loose_text, (self.width/2 - self.loose_text.get_width()/2, 50))
-                if self.connected:
-                    if not finishCon:
-                        message = receive_messages(self.port, self.ip)
-                        if message == "Finish":
-                            print("[CLIENT] Déconnexion du serveur.")
-                            finishCon = True
-                        else:
-                            self.tanks[0][1].rotate_with_angle(message[2])
             pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,490,150,40])
             self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 500))
             pygame.display.update()
@@ -605,7 +587,7 @@ class Game:  # Définition de la classe Game
                             response = requests.get(f"http://{self.ip}:5555/server/{self.port}")
                             if response.status_code == 200:
                                 print("[CLIENT] Le serveur existe !")
-                                connect = connect_to_server(self.port, self.ip)
+                                connect = connect_to_server(self.port, self.ip, self.width, self.height)
                                 if connect:
                                     print("[CLIENT] Connexion au serveur réussie !")
                                     self.connected = True
@@ -614,9 +596,6 @@ class Game:  # Définition de la classe Game
                                     self.status = "ingame"
                                     self.tanks = [self.createMyTank(position = (int((self.width - 265) / 2), int((self.height - 230) / 2)), direction="gauche", angle=135.), self.createEnemyTank(position=(125, 125), direction="droite", angle=0)]
                                     self.in_game = True
-                                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, 100, self.pause]
-                                    if data != None:
-                                        send_message(data, self.port, self.ip)
                                     error1 = False
                                     error2 = False
                                     error3 = False
@@ -654,7 +633,7 @@ class Game:  # Définition de la classe Game
                             response = requests.post(f"http://{self.ip}:5555/server/{self.port}")
                             if response.status_code == 200:
                                 print("[CLIENT] Création du serveur réussie !")
-                                connect = connect_to_server(self.port, self.ip)
+                                connect = connect_to_server(self.port, self.ip, self.width, self.height)
                                 if connect:
                                     print("[CLIENT] Connexion au serveur réussie !")
                                     self.connected = True
@@ -663,9 +642,6 @@ class Game:  # Définition de la classe Game
                                     self.status = "ingame"
                                     self.tanks = [self.createMyTank()]
                                     self.in_game = True
-                                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, 100, self.pause]
-                                    if data != None:
-                                        send_message(data, self.port, self.ip)
                                     error1 = False
                                     error2 = False
                                     error3 = False

@@ -13,15 +13,15 @@ IPAddr = IDUNIQUE
 
 status = "wait"
 
-debug = False  # Active/désactive le mode débogage
+debug = True  # Active/désactive le mode débogage
 
 last_data = None
 last_time_received = 0
 last_time_send = 0
 
 # Fonction pour se connecter au serveur
-def connect_to_server(SERVER_PORT, SERVER_HOST):
-    response = requests.post(f"http://{SERVER_HOST}:5555/connect/{SERVER_PORT}/{IPAddr}")
+def connect_to_server(SERVER_PORT, SERVER_HOST, width, height):
+    response = requests.post(f"http://{SERVER_HOST}:5555/connect/{SERVER_PORT}/{IPAddr}/{width}/{height}")
     if response.status_code == 200:
         if debug:
             print("[CLIENT] Connexion au serveur réussie.")

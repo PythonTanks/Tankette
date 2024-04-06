@@ -64,8 +64,8 @@ def create(code):
         print("---------------------------------")
         return "Serveur démarré", 200
 
-@app.route('/connect/<int:code>/<IP>', methods=['POST'])
-def connect(code, IP):
+@app.route('/connect/<int:code>/<IP>/<int:width>/<int:height>', methods=['POST'])
+def connect(code, IP, width, height):
     if code not in listCodes.keys():
         return "Code non valide", 400
     if IP in listCodes[code]:
@@ -74,8 +74,11 @@ def connect(code, IP):
         return "Nombre maximal de joueurs atteint", 400 
     listCodes[code][IP] = "Connected"
     if len(listCodes[code].keys()) == 3:
-        for key in listCodes[code].keys():
-            listCodes[code][key] = "None"
+        for i, key in enumerate(listCodes[code].keys()):
+            if i == 0:
+                listCodes[code][key] = [[125, 125], "droite", 0., [], 100, 100, False]
+            elif i == 1:
+                listCodes[code][key] = [[int((width - 265) / 2), int((height - 230) / 2)], "gauche", 135., [], 100, 100, False]
         listCodes[code]["status"] = mapGenerator.generate_map()
     print(f"    [API] {IP} connecté au code {code}")
     return "Connecté", 200
