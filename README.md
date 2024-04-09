@@ -39,18 +39,24 @@ Tout d'abord, assurez-vous que Python soit dans le **Path**. Si c'est fait, ouvr
 
 Tout d'abord, rendez-vous dans le répertoire dans lequel vous avez **cloné / enregistré** le repository. 
 
-Une fois fait, exécutez la commande suivante :
+Une fois fait, exécutez la commande suivante dans le dossier Game et aussi dans le dossier Server:
 
 ```bash
 python -m pip install -r requirements.txt
 ```
 
-Cela aura pour effet d'installer les dépendances **Python** du projet.
+Cela aura pour effet d'installer les dépendances **Python** du projet pour le client de jeu et pour le serveur.
 
-### 💻 Lancer le projet
+### 💻 Lancer le client de jeu
 
-Il vous suffit ensuite d'executer la commande suivante:
+Il vous suffit ensuite d'executer la commande suivante dans le dossier Game:
 
 ```bash
 python main.py
+```
+
+### 💻 Lancer un serveur de jeu en local
+
+```bash
+python server.py
 ```
