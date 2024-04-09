@@ -19,11 +19,6 @@ app = Flask("TanketteServer")  # Crée une instance de Flask nommée "TanketteSe
 log = logging.getLogger('werkzeug')  # Récupère le logger Werkzeug pour Flask
 log.disabled = True  # Désactive les logs de Flask
 
-configFile = open("../config.yaml", "r")
-configContent = yaml.load(configFile, Loader=yaml.Loader) # Charge le contenu du fichier de configuration
-
-SERVER_HOST = configContent["API_ADDRESS"] # Mettre l'adresse IP de la machine qui héberge le serveur
-
 # Configuration de l'hôte du serveur
 #SERVER_HOST = '172.24.18.22'  # Mettre l'adresse IP de la machine qui héberge le serveur
 
