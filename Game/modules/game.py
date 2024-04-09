@@ -65,6 +65,8 @@ class Game:  # Définition de la classe Game
         self.win = None
         
         self.affichFin = False
+
+        self.firstMessage = True
         
     def setPygame(self):
         pygame.init()  # Initialisation de Pygame
@@ -130,6 +132,7 @@ class Game:  # Définition de la classe Game
         self.win = None
         self.affichFin = False
         self.waiting = False
+        self.firstMessage = True
 
     def game(self):  # Méthode pour démarrer le jeu
         
@@ -151,9 +154,10 @@ class Game:  # Définition de la classe Game
                 # Envoi des données au serveur
                 # Préparation des données à envoyer au serveur
                 if len(self.tanks) > 1 :
-                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
-                else:
-                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, 100, self.pause]
+                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.pause]
+                if self.firstMessage:
+                    data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle, "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], 100, 100, self.pause]
+                    self.firstMessage = False
                 if data != None:
                     send_message(data, self.port, self.ip)
                 message = receive_messages(self.port, self.ip)
@@ -261,9 +265,8 @@ class Game:  # Définition de la classe Game
                                     bullet.angle = projectile["angle"]
                                     bullet.newAngle(bullet.angle)
                                     bullet.spriteRotate(bullet.image_custom)
-                    self.tanks[1][0].life = min(message[4], self.tanks[1][0].life)  # Mise à jour des points de vie du tank ennemi
-                    self.tanks[0][0].life = min(message[5], self.tanks[0][0].life)   # Mise à jour des points de vie du tank ennemi
-                    self.waiting = message[6]
+                    self.tanks[1][0].life = self.tanks[1][0].life  # Mise à jour des points de vie du tank ennemi
+                    self.waiting = message[5]
 
                     if self.debug:
                         print(f"[CLIENT] Message reçu: {message}")  # Affichage du message reçu du serveur
@@ -311,6 +314,10 @@ class Game:  # Définition de la classe Game
                     
     def AffichageFin(self):
         while self.win != None:
+            if self.win:
+                self.screen.blit(self.win_text, (self.width/2 - self.win_text.get_width()/2, 70))
+            else:
+                self.screen.blit(self.loose_text, (self.width/2 - self.loose_text.get_width()/2, 70))
             pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,490,150,40])
             self.screen.blit(self.main_back, (self.width/2 - self.main_back.get_width()/2, 500))
             pygame.display.update()
@@ -708,6 +715,13 @@ class Game:  # Définition de la classe Game
             pygame.display.update()
 
             data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation, self.tanks[0][1].get_angle(), [{"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle} for projectile in self.tanks[0][0].all_projectiles], self.tanks[0][0].life, self.tanks[1][0].life, self.pause]
+            if self.firstMessage:
+                data = [[self.tanks[0][0].rect.x, self.tanks[0][0].rect.y], self.tanks[0][0].rotation,
+                        self.tanks[0][1].get_angle(), [
+                            {"position": [projectile.rect.x, projectile.rect.y], "angle": projectile.angle,
+                             "id": projectile.id} for projectile in self.tanks[0][0].all_projectiles], 100, 100,
+                        self.pause]
+                self.firstMessage = False
             if data != None:
                 send_message(data, self.port, self.ip)
 

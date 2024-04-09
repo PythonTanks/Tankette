@@ -13,7 +13,7 @@ IPAddr = IDUNIQUE
 
 status = "wait"
 
-debug = True  # Active/désactive le mode débogage
+debug = False  # Active/désactive le mode débogage
 
 last_data = None
 last_time_received = 0
