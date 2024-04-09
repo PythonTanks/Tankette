@@ -1,21 +1,19 @@
 import pygame  # Importation de la bibliothèque Pygame pour la création de jeux
 import socket  # Importation de la bibliothèque Socket pour les communications réseau
-import threading  # Importation de la bibliothèque threading pour gérer les threads
-import yaml # Importation de la bibliothèque yaml pour manipuler des fichiers de configuration
 import time  # Importation de la bibliothèque time pour manipuler le temps
 import requests  # Importation de la bibliothèque requests pour effectuer des requêtes HTTP
-import datetime  # Importation de la bibliothèque datetime pour manipuler des objets datetime
 import random  # Importation de la bibliothèque random pour générer des nombres aléatoires
+import sys # Importation de la bibliothèque sys pour interagir avec le système
 from modules.tank import Tank  # Importation de la classe Tank depuis le fichier modules/tank.py
 from modules.topTank import TopTank  # Importation de la classe TopTank depuis le fichier modules/topTank.py
 from modules.network import connect_to_server, send_message, receive_messages, close_connection, get_map  # Importation de certaines fonctions depuis le fichier modules/network.py
 from modules.bullet import Bullet  # Importation de la classe Bullet depuis le fichier modules/bullet.py
 from modules.map import getWalls
 
-configFile = open("../config.yaml", "r")
-configContent = yaml.load(configFile, Loader=yaml.Loader) # Charge le contenu du fichier de configuration
+hostname = socket.gethostname()
+IPAddrLoc = socket.gethostbyname(hostname)
 
-IP_SERVER = configContent["API_ADDRESS"] # Adresse IP du serveur auquel se connecter
+IP_SERVER = IPAddrLoc # Adresse IP du serveur auquel se connecter
 
 #IP_SERVER = "192.168.1.36"  # Adresse IP du serveur auquel se connecter
 
@@ -116,7 +114,8 @@ class Game:  # Définition de la classe Game
         self.loose_text = self.largefont.render("Défaite !" , True , (255,255,255))  # Création d'une surface de texte
     
     def finish(self):
-        close_connection(self.port, self.ip)  # Fermeture de la connexion
+        if self.connected:
+            close_connection(self.port, self.ip)  # Fermeture de la connexion
         self.connected = False  # Mise à jour de l'état de connexion
         self.in_main_menu = True  # Retour au menu principal
         for tank in self.tanks:
@@ -680,8 +679,10 @@ class Game:  # Définition de la classe Game
     def stopGame(self):
         self.is_running = False  # Mise à jour de l'état de fonctionnement du jeu
         pygame.quit()  # Arrêt de Pygame
-        close_connection(SERVER_HOST=IP_SERVER, SERVER_PORT=5556)  # Fermeture de la connexion
+        if self.connected:
+            close_connection(self.port, self.ip)  # Fermeture de la connexion
         print("Game stopped")  # Message d'arrêt du jeu
+        sys.exit()  # Arrêt du programme
         return None
     
     def createMyTank(self, position=(125, 125), direction="droite", angle=0):
