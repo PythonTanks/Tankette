@@ -107,9 +107,10 @@ class Game:  # Définition de la classe Game
         self.quitter_text = self.smallfont.render("Quitter" , True , (255,255,255))
         
         # Initialisation des polices de caractères (texte d'erreurs)
-        self.error1_surface = self.smallfont.render("Le serveur est plein !" , True , (255,64,64))  # Création d'une surface de texte
-        self.error2_surface = self.smallfont.render("Le serveur n'éxiste pas !" , True , (255,64,64))  # Création d'une surface de texte
-        self.error3_surface = self.smallfont.render("Une erreur est survenue." , True , (255,64,64))  # Création d'une surface de texte
+        self.error1_surface = self.smallfont.render("Le serveur est indisponible !" , True , (255,64,64))  # Création d'une surface de texte
+        self.error2_surface = self.smallfont.render("Le serveur est plein !", True, (255, 64, 64))  # Création d'une surface de texte
+        self.error3_surface = self.smallfont.render("Le serveur n'éxiste pas !" , True , (255,64,64))  # Création d'une surface de texte
+        self.error4_surface = self.smallfont.render("Une erreur est survenue." , True , (255,64,64))  # Création d'une surface de texte
         
         # Initialisation des polices de caractères (texte de fin de partie)
         self.win_text = self.largefont.render("Victoire !" , True , (255,255,255))  # Création d'une surface de texte
@@ -502,10 +503,12 @@ class Game:  # Définition de la classe Game
         error1 = False  # Variable pour indiquer si une erreur est survenue
         error2 = False  # Variable pour indiquer si une erreur est survenue
         error3 = False  # Variable pour indiquer si une erreur est survenue
+        error4 = False  # Variable pour indiquer si une erreur est survenue
         
         error1_time = None  # Initialisation du temps de l'erreur
         error2_time = None
         error3_time = None
+        error4_time = None
 
         while is_open:
 
@@ -519,6 +522,9 @@ class Game:  # Définition de la classe Game
             
             if error3 and error3_time and time.time() - error3_time < 3:
                 self.screen.blit(self.error3_surface, (self.width - self.error3_surface.get_width()-50, 35))
+
+            if error4 and error4_time and time.time() - error4_time < 3:
+                self.screen.blit(self.error4_surface, (self.width - self.error4_surface.get_width()-50, 35))
 
             self.screen.blit(self.main_title, (self.width/2 - self.main_title.get_width()/2, 50))  # Affichage du titre
             pygame.draw.rect(self.screen,(50,50,50),[self.width/2 - 150/2,540,150,40])
@@ -590,8 +596,20 @@ class Game:  # Définition de la classe Game
                             
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 440 <= event.pos[1] <= 480: #clic sur le bouton rejoindre
                             self.port = int(self.port)
-                            response = requests.get(f"http://{self.ip}:5555/server/{self.port}")
-                            if response.status_code == 200:
+                            response = None
+                            try:
+                                response = requests.get(f"http://{self.ip}:5555/server/{self.port}")
+                            except Exception as e:
+                                error1 = True
+                                error2 = False
+                                error3 = False
+                                error4 = False
+                                error1_time = time.time()
+                                error2_time = None
+                                error3_time = None
+                                error4_time = None
+                                print("[CLIENT] Le serveur n'éxiste pas !")
+                            if response != None and response.status_code == 200:
                                 print("[CLIENT] Le serveur existe !")
                                 connect = connect_to_server(self.port, self.ip, self.width, self.height)
                                 if connect:
@@ -605,39 +623,59 @@ class Game:  # Définition de la classe Game
                                     error1 = False
                                     error2 = False
                                     error3 = False
+                                    error4 = False
                                     error1_time = None
                                     error2_time = None
                                     error3_time = None
+                                    error4_time = None
                                 else:
-                                    error1 = True
-                                    error2 = False
+                                    error1 = False
+                                    error2 = True
                                     error3 = False
-                                    error1_time = time.time()
-                                    error2_time = None
+                                    error4 = False
+                                    error1_time = None
+                                    error2_time = time.time()
                                     error3_time = None
+                                    error4_time = None
                                     print("[CLIENT] Serveur plein !")
-                            elif response.status_code == 400:
-                                error1 = False
-                                error2 = True
-                                error3 = False
-                                error1_time = time.time()
-                                error2_time = None
-                                error3_time = None
-                                print("[CLIENT] Le serveur n'éxiste pas !")
-                            else:
+                            elif response != None and response.status_code == 400:
                                 error1 = False
                                 error2 = False
                                 error3 = True
+                                error4 = False
                                 error1_time = None
-                                error2_time = time.time()
+                                error2_time = None
+                                error3_time = time.time()
+                                error4_time = None
+                                print("[CLIENT] Le serveur n'éxiste pas !")
+                            elif response != None:
+                                error1 = False
+                                error2 = False
+                                error3 = False
+                                error4 = True
+                                error1_time = None
+                                error2_time = None
                                 error3_time = None
+                                error4_time = time.time()
                                 print("[CLIENT] Une erreur est survenue !")
                                         
                         if self.width/2 - 150/2 <= event.pos[0] <= self.width/2 + 150/2 and 490 <= event.pos[1] <= 530: #clic sur le bouton créer
                             print("[CLIENT] Creating server on port " + str(self.ip) + ":" + str(self.port))
                             self.port = int(self.port)
-                            response = requests.post(f"http://{self.ip}:5555/server/{self.port}")
-                            if response.status_code == 200:
+                            response = None
+                            try:
+                                response = requests.post(f"http://{self.ip}:5555/server/{self.port}")
+                            except Exception as e:
+                                error1 = True
+                                error2 = False
+                                error3 = False
+                                error4 = False
+                                error1_time = time.time()
+                                error2_time = None
+                                error3_time = None
+                                error4_time = None
+                                print("[CLIENT] Le serveur n'éxiste pas !")
+                            if response != None and response.status_code == 200:
                                 print("[CLIENT] Création du serveur réussie !")
                                 connect = connect_to_server(self.port, self.ip, self.width, self.height)
                                 if connect:
@@ -651,32 +689,40 @@ class Game:  # Définition de la classe Game
                                     error1 = False
                                     error2 = False
                                     error3 = False
+                                    error4 = False
                                     error1_time = None
                                     error2_time = None
                                     error3_time = None
+                                    error4_time = None
                                 else:
-                                    error1 = True
-                                    error2 = False
+                                    error1 = False
+                                    error2 = True
                                     error3 = False
-                                    error1_time = time.time()
-                                    error2_time = None
+                                    error4 = False
+                                    error1_time = None
+                                    error2_time = time.time()
                                     error3_time = None
+                                    error4_time = None
                                     print("[CLIENT] Serveur plein !")
-                            elif response.status_code == 400:
+                            elif response != None and response.status_code == 400:
                                 error1 = False
                                 error2 = False
                                 error3 = True
+                                error4 = False
                                 error1_time = None
                                 error2_time = None
                                 error3_time = time.time()
+                                error4_time = None
                                 print("[CLIENT] Le serveur n'éxiste pas !")
-                            else:
+                            elif response != None:
                                 error1 = False
-                                error2 = True
+                                error2 = False
                                 error3 = False
+                                error4 = True
                                 error1_time = None
-                                error2_time = time.time()
+                                error2_time = None
                                 error3_time = None
+                                error4_time = time.time()
                                 print("[CLIENT] Une erreur est survenue !")
 
                 if self.pressed.get(pygame.K_ESCAPE):
